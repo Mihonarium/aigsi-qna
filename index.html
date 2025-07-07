@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+<div class="speaker-indicator" id="speaker-indicator">
+                🎤 Speaker Mode Active
+                <button onclick="copySpeakerLink()" title="Copy speaker link to share">Copy Link</button>
+                <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
+            </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -84,6 +88,43 @@
             margin-top: 1.5rem;
         }
         .session-info span { font-weight: 600; color: var(--text-primary); }
+
+        /* Speaker Mode Indicator */
+        .speaker-indicator {
+            background: var(--green);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .speaker-indicator > button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin: 0 0 0 0.25rem;
+            width: auto;
+            text-transform: none;
+            letter-spacing: normal;
+            font-weight: 500;
+        }
+        .speaker-indicator > button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: none;
+            box-shadow: none;
+        }
+        body.speaker-view .speaker-indicator {
+            display: inline-flex;
+        }
 
         /* Mobile Ask Question Button */
         .mobile-ask-btn {
@@ -290,6 +331,10 @@
             <h1>Live Q&A</h1>
             <p>Ask your questions to the speaker. The most upvoted questions rise to the top. An AI assistant will provide initial answers.</p>
             <div class="session-info" id="session-info">Session ID: <span id="session-id-display"></span></div>
+            <div class="speaker-indicator" id="speaker-indicator">
+                🎤 Speaker Mode Active
+                <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
+            </div>
             <a href="#qa-form" class="mobile-ask-btn">✨ Ask a Question</a>
         </header>
 
@@ -358,6 +403,29 @@
         const WORKER_URL = 'https://q-and-a-app.audd.workers.dev';
         const POLLING_INTERVAL_MS = 3000; // 3 seconds
         // ---------------------
+
+        // Global functions for speaker mode
+        function exitSpeakerMode() {
+            if (confirm('Are you sure you want to exit speaker mode? You will need the speaker key to re-enter.')) {
+                localStorage.removeItem('qa_speaker_key');
+                location.reload();
+            }
+        }
+        
+        function copySpeakerLink() {
+            const speakerKey = localStorage.getItem('qa_speaker_key');
+            if (!speakerKey) return;
+            
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('session') || '';
+            const speakerUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}&speaker_key=${speakerKey}`;
+            
+            navigator.clipboard.writeText(speakerUrl).then(() => {
+                alert('Speaker link copied to clipboard! Share this link privately to give someone speaker access.');
+            }).catch(() => {
+                prompt('Copy this speaker link:', speakerUrl);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (WORKER_URL.includes('your-username')) {
@@ -624,11 +692,24 @@
             function initializeApp() {
                 const params = new URLSearchParams(window.location.search);
                 sessionId = params.get('session');
-                speakerKey = params.get('speaker_key');
+                const urlSpeakerKey = params.get('speaker_key');
+
+                // Handle speaker key - store it and remove from URL
+                if (urlSpeakerKey) {
+                    localStorage.setItem('qa_speaker_key', urlSpeakerKey);
+                    params.delete('speaker_key');
+                    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Always try to get speaker key from storage
+                speakerKey = localStorage.getItem('qa_speaker_key') || '';
 
                 if (!sessionId) {
                     sessionId = Math.random().toString(36).substring(2, 10);
-                    window.history.replaceState({}, '', `?session=${sessionId}`);
+                    const newParams = new URLSearchParams();
+                    newParams.set('session', sessionId);
+                    window.history.replaceState({}, '', `?${newParams.toString()}`);
                 }
                 
                 votedItems = getVotedItems();
