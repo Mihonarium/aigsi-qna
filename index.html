@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Q&A Session</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0D1117;
+            --card-color: #161B22;
+            --border-color: #30363D;
+            --text-primary: #C9D1D9;
+            --text-secondary: #8B949E;
+            --accent-gradient: linear-gradient(45deg, #A855F7, #D946EF);
+            --accent-hover: linear-gradient(45deg, #9333EA, #C026D3);
+            --green: #238636;
+            --red: #DA3633;
+            --blue: #1F6FEB;
+            --orange: #FB8500;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: clamp(1rem, 5vw, 3rem);
+        }
+
+        @media (min-width: 992px) {
+            .app-container {
+                grid-template-columns: 2fr 1fr;
+                grid-template-areas: "main aside";
+            }
+            .qa-list-container { grid-area: main; }
+            .side-panel { grid-area: aside; position: sticky; top: 2rem; align-self: start; }
+        }
+
+        .app-header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .app-header h1 {
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 800;
+        }
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            max-width: 60ch;
+            margin: 0.5rem auto 0;
+        }
+        
+        .session-info {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: inline-block;
+            margin-top: 1.5rem;
+        }
+        .session-info span { font-weight: 600; color: var(--text-primary); }
+
+        /* Mobile Ask Question Button */
+        .mobile-ask-btn {
+            display: none;
+            background: var(--accent-gradient);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 99px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            margin-top: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+        }
+        .mobile-ask-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); 
+        }
+        @media (max-width: 991px) {
+            .mobile-ask-btn { display: inline-block; }
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .form-container h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
+        }
+        .submit-btn {
+            width: 100%;
+            background: var(--accent-gradient);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2); }
+        .submit-btn:disabled { background: var(--border-color); color: var(--text-secondary); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Q&A List */
+        .qa-list { display: flex; flex-direction: column; gap: 1rem; }
+        
+        .qa-card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1.25rem;
+            transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.4s;
+            position: relative;
+        }
+        .qa-card.new-card {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .qa-card.answered-by-speaker { opacity: 0.6; }
+        .qa-card.hidden {
+            opacity: 0.5;
+            background-color: rgba(139, 148, 158, 0.1);
+        }
+
+        .vote-section { flex-shrink: 0; text-align: center; }
+        .vote-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 40px; height: 30px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .vote-btn:hover:not(.voted) { background-color: #ffffff1a; color: var(--text-primary); }
+        .vote-btn.voted {
+            background-color: var(--blue);
+            color: white;
+            border-color: var(--blue);
+            cursor: not-allowed;
+        }
+        .vote-count {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: block;
+            margin: 0.25rem 0;
+            transition: transform 0.2s;
+        }
+
+        .content-section { flex-grow: 1; min-width: 0; }
+        
+        .question-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .author-name { font-weight: 600; color: var(--text-primary); }
+        .timestamp { font-size: 0.85rem; color: var(--text-secondary); }
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 99px;
+            text-transform: uppercase;
+        }
+        .status-badge.new, .status-badge.ai_answering { background-color: #8B949E20; color: #8B949E; }
+        .status-badge.ai_answering { animation: pulse 1.5s infinite; }
+        .status-badge.ai_answered { background-color: #A855F720; color: #C084FC; }
+        .status-badge.speaker_answered { background-color: #23863620; color: #3FB950; }
+        .status-badge.hidden { background-color: #DA363320; color: #F85149; }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+
+        .question-text { margin-bottom: 1.5rem; font-size: 1.1rem; word-wrap: break-word; }
+
+        .ai-answer-container {
+            border-top: 1px solid var(--border-color);
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+        .ai-answer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .ai-title { font-weight: 600; font-size: 0.9rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .ai-title.marked-correct { color: var(--green); background: none; -webkit-text-fill-color: var(--green); }
+        .ai-title.marked-correct::after { content: " ✓"; }
+        .ai-vote-controls { display: flex; align-items: center; gap: 0.5rem; }
+        .ai-vote-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s; }
+        .ai-vote-btn:hover:not(.voted) { transform: scale(1.2); }
+        .ai-vote-count { font-size: 0.9rem; color: var(--text-secondary); min-width: 15px; text-align: center; }
+        
+        .ai-answer-text { color: var(--text-secondary); font-size: 0.95rem; }
+        .ai-answer-text p:last-child { margin-bottom: 0; }
+        .ai-answer-text code { background: #ffffff1a; padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+        .speaker-actions { margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .speaker-btn {
+            flex: 1;
+            min-width: 140px;
+            background-color: var(--green);
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .speaker-btn:hover { background-color: #2ea043; }
+        .speaker-btn.danger { background-color: var(--red); }
+        .speaker-btn.danger:hover { background-color: #b91c1c; }
+        .speaker-btn.secondary { background-color: var(--orange); }
+        .speaker-btn.secondary:hover { background-color: #ea580c; }
+
+        .empty-state, .loading-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app">
+        <header class="app-header">
+            <h1>Live Q&A</h1>
+            <p>Ask your questions to the speaker. The most upvoted questions rise to the top. An AI assistant will provide initial answers.</p>
+            <div class="session-info" id="session-info">Session ID: <span id="session-id-display"></span></div>
+            <a href="#qa-form" class="mobile-ask-btn">✨ Ask a Question</a>
+        </header>
+
+        <main class="qa-list-container">
+            <div class="qa-list" id="qa-list">
+                <div class="loading-state" id="loading-state">Loading questions...</div>
+            </div>
+        </main>
+        
+        <aside class="side-panel">
+            <div class="form-container">
+                <h2 id="form-title">Ask a Question</h2>
+                <form id="qa-form">
+                    <div class="form-group">
+                        <label for="question-input">Your Question</label>
+                        <textarea id="question-input" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="author-input">Your Name (Optional)</label>
+                        <input type="text" id="author-input">
+                    </div>
+                    <button type="submit" class="submit-btn" id="submit-btn">Submit</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Template for Q&A card -->
+    <template id="qa-card-template">
+        <section class="qa-card" data-question-id="">
+            <div class="vote-section">
+                <button class="vote-btn question-upvote-btn" title="Upvote Question">▲</button>
+                <span class="vote-count question-vote-count">0</span>
+            </div>
+            <div class="content-section">
+                <div class="question-header">
+                    <span class="author-name"></span>
+                    <span class="timestamp"></span>
+                    <span class="status-badge"></span>
+                </div>
+                <p class="question-text"></p>
+                <div class="ai-answer-container" style="display: none;">
+                    <div class="ai-answer-header">
+                        <span class="ai-title">AI Assistant</span>
+                        <div class="ai-vote-controls">
+                            <button class="ai-vote-btn up-vote" title="Good Answer">👍</button>
+                            <span class="ai-vote-count up-vote-count">0</span>
+                            <button class="ai-vote-btn down-vote" title="Bad Answer">👎</button>
+                            <span class="ai-vote-count down-vote-count">0</span>
+                        </div>
+                    </div>
+                    <div class="ai-answer-text"></div>
+                </div>
+                <div class="speaker-actions" style="display: none;">
+                    <button class="speaker-btn mark-answered-btn">Mark as Answered Live</button>
+                    <button class="speaker-btn secondary mark-ai-correct-btn">Mark AI as Correct</button>
+                    <button class="speaker-btn secondary hide-ai-btn">Hide AI Answer</button>
+                    <button class="speaker-btn danger hide-question-btn">Hide Question</button>
+                </div>
+            </div>
+        </section>
+    </template>
+    
+    <script>
+        // --- CONFIGURATION ---
+        const WORKER_URL = 'https://q-and-a-app.audd.workers.dev';
+        const POLLING_INTERVAL_MS = 3000; // 3 seconds
+        // ---------------------
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (WORKER_URL.includes('your-username')) {
+                alert('CRITICAL: Please update the WORKER_URL in the script tag!');
+                return;
+            }
+            
+            const qaList = document.getElementById('qa-list');
+            const cardTemplate = document.getElementById('qa-card-template');
+            
+            let sessionId = '';
+            let speakerKey = '';
+            let questions = new Map();
+            let votedItems = { questions: [], answers: [] };
+            
+            const getVotedItems = () => {
+                try {
+                    const stored = localStorage.getItem(`votedItems_${sessionId}`);
+                    return stored ? JSON.parse(stored) : { questions: [], answers: [] };
+                } catch { return { questions: [], answers: [] }; }
+            };
+            const saveVotedItems = () => localStorage.setItem(`votedItems_${sessionId}`, JSON.stringify(votedItems));
+            
+            // Fixed voting functions - map singular to plural
+            const hasVoted = (type, id) => {
+                const storageType = type === 'question' ? 'questions' : 'answers';
+                return votedItems[storageType].includes(id);
+            };
+            const addVote = (type, id) => {
+                const storageType = type === 'question' ? 'questions' : 'answers';
+                if (!votedItems[storageType].includes(id)) {
+                    votedItems[storageType].push(id);
+                    saveVotedItems();
+                }
+            };
+
+            
+            function generateRandomId(length) { return Math.random().toString(36).substring(2, 2 + length); }
+            function formatTimeAgo(dateString) {
+                const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
+                if (seconds < 60) return "Just now";
+                const intervals = { y: 31536000, mo: 2592000, d: 86400, h: 3600, m: 60 };
+                for (const [unit, value] of Object.entries(intervals)) {
+                    const interval = seconds / value;
+                    if (interval >= 1) return `${Math.floor(interval)}${unit} ago`;
+                }
+            }
+            
+            function updateCard(card, question) {
+                // Update basic info
+                card.querySelector('.question-vote-count').textContent = question.question_upvotes;
+                card.querySelector('.author-name').textContent = question.author_name || 'Anonymous';
+                card.querySelector('.timestamp').textContent = formatTimeAgo(question.created_at);
+                card.querySelector('.question-text').textContent = question.question_text;
+                
+                // Update Status Badge
+                const statusBadge = card.querySelector('.status-badge');
+                statusBadge.className = 'status-badge';
+                statusBadge.classList.add(question.status);
+                if (question.hidden) statusBadge.classList.add('hidden');
+                statusBadge.textContent = question.hidden ? 'hidden' : question.status.replace(/_/g, ' ');
+
+                // Handle AI answer visibility
+                const aiContainer = card.querySelector('.ai-answer-container');
+                const shouldShowAi = question.ai_answer && !question.ai_answer_hidden;
+                
+                if (shouldShowAi || question.status === 'ai_answering') {
+                    aiContainer.style.display = 'block';
+                    
+                    if (question.ai_answer) {
+                        card.querySelector('.ai-answer-text').innerHTML = marked.parse(question.ai_answer);
+                        card.querySelector('.up-vote-count').textContent = question.ai_answer_upvotes;
+                        card.querySelector('.down-vote-count').textContent = question.ai_answer_downvotes;
+                        
+                        // Update AI title for marked correct
+                        const aiTitle = card.querySelector('.ai-title');
+                        aiTitle.classList.toggle('marked-correct', question.ai_answer_marked_correct);
+                        aiTitle.textContent = question.ai_answer_marked_correct ? 'AI Assistant (Correct)' : 'AI Assistant';
+                    } else if (question.status === 'ai_answering') {
+                        card.querySelector('.ai-answer-text').innerHTML = '<em>Thinking...</em>';
+                    }
+                } else {
+                    aiContainer.style.display = 'none';
+                }
+
+                // Speaker view logic
+                const speakerActions = card.querySelector('.speaker-actions');
+                if (speakerKey && question.status !== 'speaker_answered') {
+                    speakerActions.style.display = 'flex';
+                    
+                    // Update button texts based on states
+                    const hideQuestionBtn = card.querySelector('.hide-question-btn');
+                    hideQuestionBtn.textContent = question.hidden ? 'Show Question' : 'Hide Question';
+                    
+                    const hideAiBtn = card.querySelector('.hide-ai-btn');
+                    hideAiBtn.textContent = question.ai_answer_hidden ? 'Show AI Answer' : 'Hide AI Answer';
+                    hideAiBtn.style.display = question.ai_answer ? 'block' : 'none';
+                    
+                    const markAiBtn = card.querySelector('.mark-ai-correct-btn');
+                    markAiBtn.textContent = question.ai_answer_marked_correct ? 'Unmark AI as Correct' : 'Mark AI as Correct';
+                    markAiBtn.style.display = question.ai_answer ? 'block' : 'none';
+                } else {
+                    speakerActions.style.display = 'none';
+                }
+
+                card.classList.toggle('answered-by-speaker', question.status === 'speaker_answered');
+                card.classList.toggle('hidden', question.hidden);
+                
+                // Update voted states
+                card.querySelector('.question-upvote-btn').classList.toggle('voted', hasVoted('question', question.id));
+                card.querySelector('.ai-vote-btn.up-vote').classList.toggle('voted', hasVoted('answer', `${question.id}-up`));
+                card.querySelector('.ai-vote-btn.down-vote').classList.toggle('voted', hasVoted('answer', `${question.id}-down`));
+            }
+
+            function sortCards() {
+                const cards = Array.from(qaList.querySelectorAll('.qa-card'));
+                cards.sort((a, b) => {
+                    const qA = questions.get(parseInt(a.dataset.questionId));
+                    const qB = questions.get(parseInt(b.dataset.questionId));
+                    
+                    // First sort by speaker_answered status
+                    if (qA.status === 'speaker_answered' && qB.status !== 'speaker_answered') return 1;
+                    if (qA.status !== 'speaker_answered' && qB.status === 'speaker_answered') return -1;
+                    
+                    // Then by upvotes
+                    if (qB.question_upvotes !== qA.question_upvotes) {
+                        return qB.question_upvotes - qA.question_upvotes;
+                    }
+                    
+                    // Finally by date (newer first)
+                    return new Date(qB.created_at) - new Date(qA.created_at);
+                });
+                cards.forEach(card => qaList.appendChild(card));
+            }
+            
+            async function fetchAndRefresh() {
+                try {
+                    const url = speakerKey 
+                        ? `${WORKER_URL}/api/${sessionId}/questions?speaker_key=${speakerKey}`
+                        : `${WORKER_URL}/api/${sessionId}/questions`;
+                    
+                    const response = await fetch(url);
+                    if (!response.ok) return;
+                    const newQuestions = await response.json();
+
+                    const newQuestionIds = new Set(newQuestions.map(q => q.id));
+                    const currentQuestionIds = new Set(Array.from(questions.keys()));
+
+                    // Remove cards that are no longer present
+                    for(const id of currentQuestionIds) {
+                        if(!newQuestionIds.has(id)) {
+                            const cardToRemove = qaList.querySelector(`.qa-card[data-question-id='${id}']`);
+                            if(cardToRemove) cardToRemove.remove();
+                            questions.delete(id);
+                        }
+                    }
+                    
+                    if (newQuestions.length === 0 && questions.size === 0) {
+                        qaList.innerHTML = '<div class="empty-state">No questions yet. Be the first to ask!</div>';
+                        return;
+                    } else if (qaList.querySelector('.empty-state, .loading-state')) {
+                        qaList.innerHTML = '';
+                    }
+
+                    // Add or update cards
+                    newQuestions.forEach(q => {
+                        let card = qaList.querySelector(`.qa-card[data-question-id='${q.id}']`);
+                        if (!card) {
+                            card = cardTemplate.content.cloneNode(true).firstElementChild;
+                            card.dataset.questionId = q.id;
+                            card.classList.add('new-card'); // For animation
+                            qaList.appendChild(card);
+                            requestAnimationFrame(() => card.classList.remove('new-card'));
+                        }
+                        updateCard(card, q);
+                        questions.set(q.id, q);
+                    });
+                    
+                    sortCards();
+                } catch (error) {
+                    console.error("Polling failed:", error);
+                }
+            }
+            
+            // --- EVENT LISTENERS ---
+            
+            document.getElementById('qa-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('.submit-btn');
+                const questionInput = e.target.querySelector('#question-input');
+                const authorInput = e.target.querySelector('#author-input');
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                try {
+                    await fetch(`${WORKER_URL}/api/${sessionId}/questions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            questionText: questionInput.value,
+                            authorName: authorInput.value,
+                        }),
+                    });
+                    questionInput.value = '';
+                    await fetchAndRefresh(); // Immediate refresh after submitting
+                } catch (error) { console.error('Submit failed:', error); }
+                finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit';
+                }
+            });
+
+            qaList.addEventListener('click', async (e) => {
+                const card = e.target.closest('.qa-card');
+                if (!card) return;
+                const questionId = parseInt(card.dataset.questionId);
+                
+                const voteRequest = async (type, direction, voteId) => {
+                    if (hasVoted(type, voteId)) return;
+                    
+                    // Optimistic UI update
+                    addVote(type, voteId);
+                    e.target.classList.add('voted');
+                    const countEl = e.target.closest('.vote-section, .ai-vote-controls').querySelector(`.${direction}-vote-count, .question-vote-count`);
+                    if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+                    
+                    // Fire-and-forget request
+                    fetch(`${WORKER_URL}/api/questions/${questionId}/vote`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type, direction })
+                    }).catch(err => console.error("Vote request failed:", err));
+                };
+                
+                const speakerRequest = async (endpoint) => {
+                    e.target.disabled = true;
+                    const originalText = e.target.textContent;
+                    e.target.textContent = 'Processing...';
+                    
+                    try {
+                        await fetch(`${WORKER_URL}/api/questions/${questionId}/${endpoint}`, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ speakerKey })
+                        });
+                        await fetchAndRefresh(); // Immediate refresh after speaker action
+                    } catch (error) {
+                        console.error(`Speaker action ${endpoint} failed:`, error);
+                        e.target.textContent = originalText;
+                    } finally {
+                        e.target.disabled = false;
+                    }
+                };
+                
+                // Handle all click events
+                if (e.target.closest('.question-upvote-btn')) voteRequest('question', 'up', questionId);
+                else if (e.target.closest('.ai-vote-btn.up-vote')) voteRequest('answer', 'up', `${questionId}-up`);
+                else if (e.target.closest('.ai-vote-btn.down-vote')) voteRequest('answer', 'down', `${questionId}-down`);
+                else if (e.target.closest('.mark-answered-btn')) speakerRequest('mark-answered');
+                else if (e.target.closest('.hide-question-btn')) speakerRequest('toggle-hide');
+                else if (e.target.closest('.mark-ai-correct-btn')) speakerRequest('mark-ai-correct');
+                else if (e.target.closest('.hide-ai-btn')) speakerRequest('toggle-ai-hide');
+            });
+            
+            // --- INITIALIZATION ---
+            function initializeApp() {
+                const params = new URLSearchParams(window.location.search);
+                sessionId = params.get('session');
+                speakerKey = params.get('speaker_key');
+
+                if (!sessionId) {
+                    sessionId = Math.random().toString(36).substring(2, 10);
+                    window.history.replaceState({}, '', `?session=${sessionId}`);
+                }
+                
+                votedItems = getVotedItems();
+                
+                document.getElementById('session-id-display').textContent = sessionId;
+                if(speakerKey) document.body.classList.add('speaker-view');
+
+                fetchAndRefresh(); // Initial fetch
+                setInterval(fetchAndRefresh, POLLING_INTERVAL_MS); // Start polling
+            }
+
+            // Handle mobile ask button click
+            document.querySelector('.mobile-ask-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                const form = document.getElementById('qa-form');
+                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    document.getElementById('question-input').focus();
+                }, 500);
+            });
+
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
