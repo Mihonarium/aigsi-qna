@@ -75,6 +75,10 @@ margin-left: auto;
 margin-right: auto;
 }
 
+body.session-active .session-controls {
+display: none;
+}
+
 body.session-unavailable .session-info {
 justify-content: center;
 }
@@ -1304,7 +1308,7 @@ const handleSessionMissing = (reason) => {
     clearSessionLinks();
 
     if (sessionControlsContainer) {
-        sessionControlsContainer.style.display = 'flex';
+        sessionControlsContainer.style.display = '';
     }
 
     if (manualSessionInput) manualSessionInput.value = '';
@@ -1356,7 +1360,7 @@ const switchSession = (newSessionId, incomingSpeakerKey = '') => {
     setFormEnabled(true);
     sessionUnavailable = false;
     if (sessionControlsContainer) {
-        sessionControlsContainer.style.display = 'flex';
+        sessionControlsContainer.style.display = 'none';
     }
     if (manualSessionInput) manualSessionInput.value = sessionId;
 
@@ -1393,7 +1397,7 @@ const createSessionFromUi = async () => {
         updateSessionLinks(audienceUrl, speakerUrl);
         switchSession(newSessionId, newSpeakerKey);
         if (sessionControlsContainer) {
-            sessionControlsContainer.style.display = 'flex';
+            sessionControlsContainer.style.display = 'none';
         }
     } catch (error) {
         console.error('Create session failed:', error);
