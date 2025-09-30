@@ -79,7 +79,6 @@ body.session-unavailable .session-info {
 justify-content: center;
 }
 
-body.session-unavailable .manage-session-btn,
 body.session-unavailable .session-info-divider {
 display: none;
 }
@@ -129,31 +128,142 @@ line-height: 1.5;
 }
 .session-warning a { color: #ffaba8; text-decoration: underline; }
 
-.manage-session-btn {
-background: rgba(255, 255, 255, 0.1);
-border: 1px solid rgba(255, 255, 255, 0.2);
-color: var(--text-primary);
-padding: 0.4rem 0.8rem;
-border-radius: 99px;
-font-size: 0.85rem;
-font-weight: 500;
+
+.toast-container {
+position: fixed;
+top: 1.25rem;
+right: 1.25rem;
+display: flex;
+flex-direction: column;
+gap: 0.75rem;
+z-index: 3000;
+max-width: min(320px, calc(100vw - 2.5rem));
+}
+.toast {
+background: rgba(22, 27, 34, 0.94);
+border: 1px solid rgba(85, 85, 85, 0.4);
+border-radius: 10px;
+color: #ffffff;
+padding: 0.85rem 1rem;
+box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+display: flex;
+align-items: flex-start;
+gap: 0.75rem;
+transform: translateY(-10px);
+opacity: 0;
+transition: opacity 0.2s ease, transform 0.2s ease;
+font-size: 0.9rem;
+}
+.toast.show {
+opacity: 1;
+transform: translateY(0);
+}
+.toast-info { border-color: rgba(31, 111, 235, 0.5); }
+.toast-success { border-color: rgba(35, 134, 54, 0.5); }
+.toast-warning { border-color: rgba(251, 133, 0, 0.5); }
+.toast-error { border-color: rgba(218, 54, 51, 0.6); }
+.toast-close {
+background: none;
+border: none;
+color: inherit;
+margin-left: auto;
+font-size: 1.1rem;
+line-height: 1;
 cursor: pointer;
-transition: all 0.2s;
-display: inline-flex;
+padding: 0;
+opacity: 0.6;
+transition: opacity 0.2s ease;
+}
+.toast-close:hover { opacity: 1; }
+
+.modal-overlay {
+position: fixed;
+top: 0;
+right: 0;
+bottom: 0;
+left: 0;
+background: rgba(13, 17, 23, 0.85);
+display: flex;
 align-items: center;
-gap: 0.4rem;
-margin: -0.2rem 0 -0.2rem 0.5rem;
+justify-content: center;
+z-index: 3500;
+padding: 1.5rem;
 }
-.manage-session-btn:hover:not(:disabled) {
-background: rgba(255, 255, 255, 0.15);
-border-color: rgba(255, 255, 255, 0.3);
+.modal-dialog {
+background: var(--card-color);
+border: 1px solid var(--border-color);
+border-radius: 14px;
+padding: 1.5rem;
+width: min(420px, 100%);
+box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+.modal-dialog p {
+margin: 0;
+font-size: 0.95rem;
+color: var(--text-primary);
+}
+.modal-actions {
+display: flex;
+justify-content: flex-end;
+gap: 0.75rem;
+}
+.modal-actions button {
+background: rgba(255, 255, 255, 0.08);
+border: 1px solid rgba(255, 255, 255, 0.12);
+color: var(--text-primary);
+padding: 0.45rem 1rem;
+border-radius: 8px;
+font-weight: 600;
+cursor: pointer;
+transition: background 0.2s ease, transform 0.2s ease;
+}
+.modal-actions button:hover {
+background: rgba(255, 255, 255, 0.14);
 transform: translateY(-1px);
-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
-.manage-session-btn:disabled {
-cursor: not-allowed;
-opacity: 0.5;
+.modal-actions .modal-confirm {
+background: var(--accent-gradient);
+border: none;
+color: #ffffff;
 }
+.modal-actions .modal-confirm:hover {
+transform: translateY(-1px);
+box-shadow: 0 12px 24px rgba(168, 85, 247, 0.3);
+}
+.modal-copy-field {
+display: flex;
+gap: 0.5rem;
+align-items: center;
+background: rgba(13, 17, 23, 0.85);
+border: 1px solid var(--border-color);
+border-radius: 8px;
+padding: 0.5rem;
+}
+.modal-copy-field input {
+flex: 1;
+background: transparent;
+border: none;
+color: var(--text-primary);
+font-size: 0.9rem;
+outline: none;
+}
+.modal-copy-field button {
+background: rgba(255, 255, 255, 0.08);
+border: 1px solid rgba(255, 255, 255, 0.15);
+color: var(--text-primary);
+border-radius: 6px;
+padding: 0.35rem 0.75rem;
+cursor: pointer;
+font-weight: 600;
+transition: background 0.2s ease;
+}
+.modal-copy-field button:hover {
+background: rgba(255, 255, 255, 0.14);
+}
+
 
 .session-controls {
 background: rgba(22, 27, 34, 0.8);
@@ -178,6 +288,16 @@ text-align: center;
 font-size: 0.85rem;
 color: var(--text-secondary);
 text-align: center;
+}
+.session-tools-label {
+display: block;
+text-align: center;
+font-weight: 600;
+color: var(--text-secondary);
+}
+body.session-active .session-controls-title,
+body.session-active .session-controls-description {
+display: none;
 }
 .session-controls button {
 background: var(--accent-gradient);
@@ -268,9 +388,6 @@ transform: none;
 box-shadow: none;
 }
 
-.session-controls[data-visible="false"] {
-display: none;
-}
 
 /* Speaker Mode Indicator */
 .speaker-indicator {
@@ -502,6 +619,9 @@ padding-top: 1rem;
 .ai-vote-count { font-size: 0.9rem; color: var(--text-secondary); min-width: 15px; text-align: center; }
 
 .ai-answer-text { color: var(--text-secondary); font-size: 0.95rem; }
+.ai-answer-text a,
+.ai-answer-text a:visited { color: #ffffff; text-decoration: underline; }
+.ai-answer-text a:hover { color: #d8b4fe; }
 .ai-answer-text p:last-child { margin-bottom: 0; }
 .ai-answer-text code { background: #ffffff1a; padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
 
@@ -638,6 +758,8 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 </head>
 <body class="session-unavailable">
 
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
 <div class="app-container" id="app">
 <header class="app-header">
 <h1>Live Q&A</h1>
@@ -651,7 +773,6 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         </svg>
         QR Code
     </button>
-    <button class="manage-session-btn" id="manage-session-btn" type="button" aria-expanded="false" aria-controls="session-controls">Session Tools</button>
 </div>
 <div class="speaker-indicator" id="speaker-indicator">
     🎤 Speaker Mode Active
@@ -659,9 +780,9 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
 </div>
 <div class="session-warning" id="session-warning"></div>
-<div class="session-controls" id="session-controls" data-visible="true">
-    <h2>Session Setup</h2>
-    <p>Create a fresh session or join an existing one.</p>
+<div class="session-controls" id="session-controls">
+    <h2 class="session-controls-title">Session Setup</h2>
+    <p class="session-controls-description">Create a fresh session or join an existing one.</p>
     <button id="create-session-btn" type="button">Create New Session</button>
     <div class="session-links" id="session-links">
         <div class="session-link-row">
@@ -764,25 +885,175 @@ const WORKER_URL = 'https://q-and-a-app.audd.workers.dev';
 const POLLING_INTERVAL_MS = 3000; // 3 seconds
 // ---------------------
 
+let toastContainer = null;
+
+function getToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.getElementById('toast-container');
+    }
+    return toastContainer;
+}
+
+function hideToast(toast) {
+    if (!toast) return;
+    toast.classList.remove('show');
+    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+}
+
+function showToast(message, options = {}) {
+    const container = getToastContainer();
+    if (!container) return;
+
+    const { type = 'info', duration = 4000 } = options;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    const text = document.createElement('span');
+    text.textContent = message;
+    toast.appendChild(text);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'toast-close';
+    closeBtn.setAttribute('aria-label', 'Dismiss notification');
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => hideToast(toast));
+    toast.appendChild(closeBtn);
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => { toast.classList.add('show'); });
+
+    if (duration !== null) {
+        setTimeout(() => hideToast(toast), duration);
+    }
+}
+
+function showDialog({ message, confirmText = 'OK', cancelText, copyValue, type = 'info' } = {}) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = `modal-overlay modal-${type}`;
+
+        const dialog = document.createElement('div');
+        dialog.className = 'modal-dialog';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        overlay.appendChild(dialog);
+
+        const messageEl = document.createElement('p');
+        messageEl.textContent = message;
+        dialog.appendChild(messageEl);
+
+        let copyInput = null;
+        if (copyValue) {
+            const copyField = document.createElement('div');
+            copyField.className = 'modal-copy-field';
+
+            copyInput = document.createElement('input');
+            copyInput.type = 'text';
+            copyInput.value = copyValue;
+            copyInput.readOnly = true;
+            copyInput.setAttribute('aria-label', 'Value to copy');
+            copyField.appendChild(copyInput);
+
+            const copyButton = document.createElement('button');
+            copyButton.type = 'button';
+            copyButton.textContent = 'Copy';
+            copyButton.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(copyValue);
+                    showToast('Copied to clipboard.', { type: 'success', duration: 2500 });
+                } catch {
+                    copyInput.select();
+                    const fallbackResult = document.execCommand ? document.execCommand('copy') : false;
+                    if (fallbackResult) {
+                        showToast('Copied to clipboard.', { type: 'success', duration: 2500 });
+                    } else {
+                        showToast('Use Ctrl+C (or Command+C) to copy the selected text.', { type: 'info', duration: 5000 });
+                    }
+                }
+            });
+            copyField.appendChild(copyButton);
+            dialog.appendChild(copyField);
+
+            setTimeout(() => copyInput?.select(), 75);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'modal-actions';
+        dialog.appendChild(actions);
+
+        const cleanup = (result) => {
+            document.removeEventListener('keydown', handleKeydown);
+            overlay.remove();
+            resolve(result);
+        };
+
+        if (cancelText) {
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.textContent = cancelText;
+            cancelBtn.addEventListener('click', () => cleanup(false));
+            actions.appendChild(cancelBtn);
+        }
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.type = 'button';
+        confirmBtn.className = 'modal-confirm';
+        confirmBtn.textContent = confirmText;
+        confirmBtn.addEventListener('click', () => cleanup(true));
+        actions.appendChild(confirmBtn);
+
+        const handleKeydown = (event) => {
+            if (event.key === 'Escape') {
+                if (cancelText) {
+                    event.preventDefault();
+                    cleanup(false);
+                }
+            } else if (event.key === 'Enter' && document.activeElement === confirmBtn) {
+                event.preventDefault();
+                cleanup(true);
+            }
+        };
+
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay && cancelText) {
+                cleanup(false);
+            }
+        });
+
+        document.addEventListener('keydown', handleKeydown);
+        document.body.appendChild(overlay);
+        (copyInput || confirmBtn).focus();
+    });
+}
+
 // Global functions for speaker mode and QR code
-function exitSpeakerMode() {
+async function exitSpeakerMode() {
 const params = new URLSearchParams(window.location.search);
 const currentSession = params.get('session');
 
-if (confirm('Are you sure you want to exit speaker mode? You will need the speaker key to re-enter.')) {
-    if (currentSession) {
-        localStorage.removeItem(`qa_speaker_key_${currentSession}`);
-    }
-    localStorage.removeItem('qa_speaker_key'); // legacy cleanup
-    location.reload();
+const confirmed = await showDialog({
+    message: 'Are you sure you want to exit speaker mode? You will need the speaker key to re-enter.',
+    confirmText: 'Exit Speaker Mode',
+    cancelText: 'Stay in Speaker Mode',
+    type: 'warning'
+});
+
+if (!confirmed) return;
+
+if (currentSession) {
+    localStorage.removeItem(`qa_speaker_key_${currentSession}`);
 }
+localStorage.removeItem('qa_speaker_key'); // legacy cleanup
+location.reload();
 }
 
-function copySpeakerLink() {
+async function copySpeakerLink() {
 const params = new URLSearchParams(window.location.search);
 const sessionId = params.get('session') || '';
 if (!sessionId) {
-    alert('A session ID is required before you can copy a speaker link.');
+    showToast('A session ID is required before you can copy a speaker link.', { type: 'warning' });
     return;
 }
 
@@ -790,24 +1061,31 @@ const storageKey = `qa_speaker_key_${sessionId}`;
 const speakerKey = localStorage.getItem(storageKey) || localStorage.getItem('qa_speaker_key');
 
 if (!speakerKey) {
-    alert('No speaker key found for this session. Use a link that includes the speaker key.');
+    showToast('No speaker key found for this session. Use a link that includes the speaker key.', { type: 'warning' });
     return;
 }
 
 const speakerUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}&speaker_key=${speakerKey}`;
 
-navigator.clipboard.writeText(speakerUrl).then(() => {
-    alert('Speaker link copied to clipboard! Share this link privately to give someone speaker access.');
-}).catch(() => {
-    prompt('Copy this speaker link:', speakerUrl);
-});
+try {
+    await navigator.clipboard.writeText(speakerUrl);
+    showToast('Speaker link copied to clipboard! Share this link privately to give someone speaker access.', { type: 'success' });
+} catch {
+    showToast('Automatic copy failed. Copy the speaker link manually.', { type: 'warning', duration: 5000 });
+    await showDialog({
+        message: 'Copy this speaker link manually:',
+        confirmText: 'Done',
+        copyValue: speakerUrl,
+        type: 'info'
+    });
+}
 }
 
 function showQRCode() {
 const params = new URLSearchParams(window.location.search);
 const sessionId = params.get('session') || '';
 if (!sessionId) {
-    alert('A session ID is required before generating a QR code.');
+    showToast('A session ID is required before generating a QR code.', { type: 'warning' });
     return;
 }
 const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
@@ -838,9 +1116,25 @@ if (!event || event.target === document.getElementById('qrModal')) {
 }
 }
 
+function enhanceAiAnswerLinks(container) {
+    if (!container) return;
+    container.querySelectorAll('a').forEach((anchor) => {
+        anchor.setAttribute('target', '_blank');
+        const existingRel = anchor.getAttribute('rel') || '';
+        const relTokens = new Set(existingRel.split(/\s+/).filter(Boolean));
+        relTokens.add('noopener');
+        relTokens.add('noreferrer');
+        anchor.setAttribute('rel', Array.from(relTokens).join(' '));
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 if (WORKER_URL.includes('your-username')) {
-    alert('CRITICAL: Please update the WORKER_URL in the script tag!');
+    showDialog({
+        message: 'CRITICAL: Please update the WORKER_URL in the script tag!',
+        confirmText: 'Close',
+        type: 'error'
+    });
     return;
 }
 
@@ -856,7 +1150,6 @@ const formContainer = document.querySelector('.form-container');
 const baseAppUrl = `${window.location.origin}${window.location.pathname}`;
 const createSessionButton = document.getElementById('create-session-btn');
 const sessionControlsContainer = document.getElementById('session-controls');
-const manageSessionButton = document.getElementById('manage-session-btn');
 const sessionLinksContainer = document.getElementById('session-links');
 const audienceLinkInput = document.getElementById('audience-link');
 const speakerLinkInput = document.getElementById('speaker-link');
@@ -864,6 +1157,16 @@ const copyAudienceButton = document.getElementById('copy-audience-link');
 const copySpeakerButton = document.getElementById('copy-speaker-link');
 const manualSessionInput = document.getElementById('manual-session-input');
 const manualSessionJoinButton = document.getElementById('manual-session-join-btn');
+
+const sessionToolsButton = Array.from(document.querySelectorAll('button')).find(
+    (button) => button.textContent && button.textContent.trim().toLowerCase() === 'session tools'
+);
+if (sessionToolsButton) {
+    const label = document.createElement('span');
+    label.className = 'session-tools-label';
+    label.textContent = sessionToolsButton.textContent.trim();
+    sessionToolsButton.replaceWith(label);
+}
 
 let sessionId = '';
 let speakerKey = '';
@@ -933,33 +1236,6 @@ const clearSessionWarning = () => {
     sessionWarning.innerHTML = '';
 };
 
-const showSessionControls = () => {
-    if (sessionControlsContainer) {
-        sessionControlsContainer.dataset.visible = 'true';
-    }
-    if (manageSessionButton) {
-        manageSessionButton.disabled = false;
-        manageSessionButton.textContent = 'Hide Session Tools';
-        manageSessionButton.setAttribute('aria-expanded', 'true');
-    }
-};
-
-const hideSessionControls = () => {
-    if (sessionControlsContainer) {
-        sessionControlsContainer.dataset.visible = 'false';
-    }
-    if (manageSessionButton) {
-        manageSessionButton.disabled = false;
-        manageSessionButton.textContent = 'Session Tools';
-        manageSessionButton.setAttribute('aria-expanded', 'false');
-    }
-};
-
-const areSessionControlsVisible = () => {
-    if (!sessionControlsContainer) return false;
-    return sessionControlsContainer.dataset.visible !== 'false';
-};
-
 const stopPolling = () => {
     if (pollingTimerId) {
         clearInterval(pollingTimerId);
@@ -973,10 +1249,21 @@ const startPolling = () => {
 };
 
 const copyToClipboard = async (value, description) => {
+    if (!value) return false;
+    const label = description ?? 'value';
     try {
         await navigator.clipboard.writeText(value);
+        showToast(`${label} copied to clipboard.`, { type: 'success' });
+        return true;
     } catch {
-        prompt(`Copy ${description ?? 'value'}:`, value);
+        showToast(`Automatic copy failed. Copy the ${label.toLowerCase()} manually.`, { type: 'warning', duration: 5000 });
+        await showDialog({
+            message: `Copy this ${label.toLowerCase()} manually:`,
+            confirmText: 'Done',
+            copyValue: value,
+            type: 'info'
+        });
+        return false;
     }
 };
 
@@ -1017,13 +1304,7 @@ const handleSessionMissing = (reason) => {
     clearSessionLinks();
 
     if (sessionControlsContainer) {
-        sessionControlsContainer.dataset.visible = 'true';
-    }
-
-    if (manageSessionButton) {
-        manageSessionButton.disabled = true;
-        manageSessionButton.textContent = 'Session Tools';
-        manageSessionButton.setAttribute('aria-expanded', 'false');
+        sessionControlsContainer.style.display = 'flex';
     }
 
     if (manualSessionInput) manualSessionInput.value = '';
@@ -1074,8 +1355,9 @@ const switchSession = (newSessionId, incomingSpeakerKey = '') => {
     clearSessionWarning();
     setFormEnabled(true);
     sessionUnavailable = false;
-    hideSessionControls();
-    if (manageSessionButton) manageSessionButton.disabled = false;
+    if (sessionControlsContainer) {
+        sessionControlsContainer.style.display = 'flex';
+    }
     if (manualSessionInput) manualSessionInput.value = sessionId;
 
     const newUrl = `?session=${encodeURIComponent(sessionId)}`;
@@ -1110,11 +1392,12 @@ const createSessionFromUi = async () => {
 
         updateSessionLinks(audienceUrl, speakerUrl);
         switchSession(newSessionId, newSpeakerKey);
-        showSessionControls();
-        if (manageSessionButton) manageSessionButton.disabled = false;
+        if (sessionControlsContainer) {
+            sessionControlsContainer.style.display = 'flex';
+        }
     } catch (error) {
         console.error('Create session failed:', error);
-        alert('Failed to create a new session. Please try again.');
+        showToast('Failed to create a new session. Please try again.', { type: 'error' });
     } finally {
         createSessionButton.disabled = false;
         createSessionButton.textContent = originalText;
@@ -1157,13 +1440,15 @@ function updateCard(card, question) {
 
     // Handle AI answer visibility
     const aiContainer = card.querySelector('.ai-answer-container');
+    const aiTextElement = card.querySelector('.ai-answer-text');
     const shouldShowAi = question.ai_answer && !question.ai_answer_hidden;
     
     if (shouldShowAi || question.status === 'ai_answering') {
         aiContainer.style.display = 'block';
         
         if (question.ai_answer) {
-            card.querySelector('.ai-answer-text').innerHTML = marked.parse(question.ai_answer);
+            aiTextElement.innerHTML = marked.parse(question.ai_answer);
+            enhanceAiAnswerLinks(aiTextElement);
             card.querySelector('.up-vote-count').textContent = question.ai_answer_upvotes;
             card.querySelector('.down-vote-count').textContent = question.ai_answer_downvotes;
             
@@ -1172,7 +1457,7 @@ function updateCard(card, question) {
             aiTitle.classList.toggle('marked-correct', question.ai_answer_marked_correct);
             aiTitle.textContent = question.ai_answer_marked_correct ? 'AI Assistant (Correct)' : 'AI Assistant';
         } else if (question.status === 'ai_answering') {
-            card.querySelector('.ai-answer-text').innerHTML = '<em>Thinking...</em>';
+            aiTextElement.innerHTML = '<em>Thinking...</em>';
         }
     } else {
         aiContainer.style.display = 'none';
@@ -1291,32 +1576,27 @@ async function fetchAndRefresh() {
 
 // --- EVENT LISTENERS ---
 
-if (manageSessionButton) {
-    manageSessionButton.addEventListener('click', () => {
-        if (manageSessionButton.disabled) return;
-        if (areSessionControlsVisible()) {
-            hideSessionControls();
-        } else {
-            showSessionControls();
-        }
-    });
-}
-
 if (createSessionButton) {
     createSessionButton.addEventListener('click', createSessionFromUi);
 }
 
 if (copyAudienceButton) {
-    copyAudienceButton.addEventListener('click', () => {
-        if (!audienceLinkInput || !audienceLinkInput.value) return;
-        copyToClipboard(audienceLinkInput.value, 'Audience link');
+    copyAudienceButton.addEventListener('click', async () => {
+        if (!audienceLinkInput || !audienceLinkInput.value) {
+            showToast('Audience link is not available yet.', { type: 'warning' });
+            return;
+        }
+        await copyToClipboard(audienceLinkInput.value, 'Audience link');
     });
 }
 
 if (copySpeakerButton) {
-    copySpeakerButton.addEventListener('click', () => {
-        if (!speakerLinkInput || !speakerLinkInput.value) return;
-        copyToClipboard(speakerLinkInput.value, 'Speaker link');
+    copySpeakerButton.addEventListener('click', async () => {
+        if (!speakerLinkInput || !speakerLinkInput.value) {
+            showToast('Speaker link is not available yet.', { type: 'warning' });
+            return;
+        }
+        await copyToClipboard(speakerLinkInput.value, 'Speaker link');
     });
 }
 
@@ -1336,7 +1616,7 @@ if (manualSessionInput) {
 formElement.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!sessionId || sessionUnavailable) {
-        alert('A valid session is required before submitting questions.');
+        showToast('A valid session is required before submitting questions.', { type: 'warning' });
         return;
     }
 
@@ -1396,7 +1676,7 @@ qaList.addEventListener('click', async (e) => {
     
     const speakerRequest = async (endpoint) => {
         if (!speakerKey) {
-            alert('Speaker key missing. Use a speaker link for this session.');
+            showToast('Speaker key missing. Use a speaker link for this session.', { type: 'warning' });
             return;
         }
         e.target.disabled = true;
@@ -1410,7 +1690,7 @@ qaList.addEventListener('click', async (e) => {
             });
 
             if (response.status === 403) {
-                alert('Speaker key is not valid for this session. Request a fresh speaker link.');
+                showToast('Speaker key is not valid for this session. Request a fresh speaker link.', { type: 'error' });
                 if (speakerStorageKey) localStorage.removeItem(speakerStorageKey);
                 speakerKey = '';
                 document.body.classList.remove('speaker-view');
@@ -1425,6 +1705,7 @@ qaList.addEventListener('click', async (e) => {
             await fetchAndRefresh(); // Immediate refresh after speaker action
         } catch (error) {
             console.error(`Speaker action ${endpoint} failed:`, error);
+            showToast('Something went wrong while processing that speaker action.', { type: 'error' });
             e.target.textContent = originalText;
         } finally {
             e.target.disabled = false;
@@ -1460,7 +1741,7 @@ function initializeApp() {
 document.querySelector('.mobile-ask-btn').addEventListener('click', (e) => {
     e.preventDefault();
     if (submitButton.disabled) {
-        alert('The session is not ready for questions yet. Create a session first.');
+        showToast('The session is not ready for questions yet. Create a session first.', { type: 'warning' });
         return;
     }
     const form = document.getElementById('qa-form');
