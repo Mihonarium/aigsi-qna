@@ -898,6 +898,149 @@ function getToastContainer() {
     return toastContainer;
 }
 
+const safeRenderer = new marked.Renderer();
+safeRenderer.image = () => '';
+safeRenderer.html = () => '';
+safeRenderer.link = (href = '', title, text) => {
+    const safeHref = escapeHtmlAttribute(href);
+    const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : '';
+    return `<a href="${safeHref}"${titleAttr}>${text}</a>`;
+};
+safeRenderer.code = (code = '', language) => {
+    const langClass = typeof language === 'string' && language
+        ? ` class="language-${escapeHtmlAttribute(language.toLowerCase().replace(/[^a-z0-9-]+/g, ''))}"`
+        : '';
+    return `<pre><code${langClass}>${escapeHtml(code)}</code></pre>`;
+};
+safeRenderer.codespan = (code = '') => `<code>${escapeHtml(code)}</code>`;
+
+function escapeHtml(value = '') {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeHtmlAttribute(value = '') {
+    return escapeHtml(value).replace(/`/g, '&#96;');
+}
+
+function sanitizeUrl(rawHref = '') {
+    const value = rawHref.trim();
+    if (!value) return '';
+    if (value.startsWith('#')) return value;
+    try {
+        const resolved = new URL(value, window.location.origin);
+        if (['http:', 'https:', 'mailto:'].includes(resolved.protocol)) {
+            return resolved.href;
+        }
+        return '';
+    } catch {
+        return '';
+    }
+}
+
+function unwrapElement(element) {
+    const parent = element.parentNode;
+    if (!parent) {
+        element.remove();
+        return;
+    }
+    while (element.firstChild) {
+        parent.insertBefore(element.firstChild, element);
+    }
+    element.remove();
+}
+
+function sanitizeRenderedHtml(html = '') {
+    const template = document.createElement('template');
+    template.innerHTML = html;
+
+    const disallowedTags = [
+        'script', 'style', 'img', 'svg', 'math', 'iframe', 'object', 'embed',
+        'form', 'input', 'button', 'select', 'textarea', 'video', 'audio', 'canvas',
+        'applet', 'frame', 'frameset', 'noscript', 'picture', 'source', 'track'
+    ];
+    disallowedTags.forEach((tag) => {
+        template.content.querySelectorAll(tag).forEach((node) => node.remove());
+    });
+
+    const allowedTags = new Set([
+        'p', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote',
+        'hr', 'br', 'del', 'ins', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span'
+    ]);
+
+    const allowedAttributes = {
+        a: new Set(['href', 'title', 'target', 'rel']),
+        code: new Set(['class']),
+        pre: new Set(['class'])
+    };
+
+    Array.from(template.content.querySelectorAll('*')).forEach((element) => {
+        const tag = element.tagName.toLowerCase();
+
+        if (!allowedTags.has(tag)) {
+            unwrapElement(element);
+            return;
+        }
+
+        Array.from(element.attributes).forEach((attr) => {
+            const name = attr.name.toLowerCase();
+            if (!(allowedAttributes[tag] && allowedAttributes[tag].has(name))) {
+                element.removeAttribute(attr.name);
+                return;
+            }
+
+            if (tag === 'a' && name === 'href') {
+                const safeHref = sanitizeUrl(attr.value);
+                if (!safeHref) {
+                    unwrapElement(element);
+                    return;
+                }
+                element.setAttribute('href', safeHref);
+                element.setAttribute('target', '_blank');
+                element.setAttribute('rel', 'noopener noreferrer');
+            }
+
+            if (tag === 'code' && name === 'class') {
+                const filtered = attr.value
+                    .split(/\s+/)
+                    .filter((token) => token.startsWith('language-') && /^[a-z0-9-]+$/.test(token.replace('language-', '')));
+                if (filtered.length) {
+                    element.setAttribute('class', filtered.join(' '));
+                } else {
+                    element.removeAttribute('class');
+                }
+            }
+
+            if (tag === 'pre' && name === 'class') {
+                element.removeAttribute('class');
+            }
+        });
+    });
+
+    return template.innerHTML;
+}
+
+function renderSafeAiAnswer(markdown = '') {
+    try {
+        const rawHtml = marked.parse(markdown || '', {
+            renderer: safeRenderer,
+            mangle: false,
+            headerIds: false,
+            smartLists: true,
+            smartypants: true,
+            breaks: true
+        });
+        return sanitizeRenderedHtml(rawHtml);
+    } catch (error) {
+        console.error('Failed to render AI markdown safely:', error);
+        return sanitizeRenderedHtml(escapeHtml(markdown || ''));
+    }
+}
+
 function hideToast(toast) {
     if (!toast) return;
     toast.classList.remove('show');
@@ -1118,18 +1261,6 @@ function closeQRModal(event) {
 if (!event || event.target === document.getElementById('qrModal')) {
     document.getElementById('qrModal').classList.remove('show');
 }
-}
-
-function enhanceAiAnswerLinks(container) {
-    if (!container) return;
-    container.querySelectorAll('a').forEach((anchor) => {
-        anchor.setAttribute('target', '_blank');
-        const existingRel = anchor.getAttribute('rel') || '';
-        const relTokens = new Set(existingRel.split(/\s+/).filter(Boolean));
-        relTokens.add('noopener');
-        relTokens.add('noreferrer');
-        anchor.setAttribute('rel', Array.from(relTokens).join(' '));
-    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1451,8 +1582,7 @@ function updateCard(card, question) {
         aiContainer.style.display = 'block';
         
         if (question.ai_answer) {
-            aiTextElement.innerHTML = marked.parse(question.ai_answer);
-            enhanceAiAnswerLinks(aiTextElement);
+            aiTextElement.innerHTML = renderSafeAiAnswer(question.ai_answer);
             card.querySelector('.up-vote-count').textContent = question.ai_answer_upvotes;
             card.querySelector('.down-vote-count').textContent = question.ai_answer_downvotes;
             
