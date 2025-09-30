@@ -1,8 +1,4 @@
-<div class="speaker-indicator" id="speaker-indicator">
-    🎤 Speaker Mode Active
-    <button onclick="copySpeakerLink()" title="Copy speaker link to share">Copy Link</button>
-    <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
-</div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -91,6 +87,19 @@ gap: 0.75rem;
 margin-top: 1.5rem;
 }
 .session-info span { font-weight: 600; color: var(--text-primary); }
+
+.session-warning {
+background: rgba(218, 54, 51, 0.12);
+border: 1px solid rgba(218, 54, 51, 0.5);
+color: #ffaba8;
+padding: 0.75rem 1rem;
+border-radius: 12px;
+margin-top: 1rem;
+display: none;
+font-size: 0.9rem;
+line-height: 1.5;
+}
+.session-warning a { color: #ffaba8; text-decoration: underline; }
 
 /* Speaker Mode Indicator */
 .speaker-indicator {
@@ -449,8 +458,10 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 </div>
 <div class="speaker-indicator" id="speaker-indicator">
     🎤 Speaker Mode Active
+    <button onclick="copySpeakerLink()" title="Copy speaker link to share">Copy Link</button>
     <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
 </div>
+<div class="session-warning" id="session-warning"></div>
 <a href="#qa-form" class="mobile-ask-btn">✨ Ask a Question</a>
 </header>
 
@@ -533,18 +544,34 @@ const POLLING_INTERVAL_MS = 3000; // 3 seconds
 
 // Global functions for speaker mode and QR code
 function exitSpeakerMode() {
+const params = new URLSearchParams(window.location.search);
+const currentSession = params.get('session');
+
 if (confirm('Are you sure you want to exit speaker mode? You will need the speaker key to re-enter.')) {
-    localStorage.removeItem('qa_speaker_key');
+    if (currentSession) {
+        localStorage.removeItem(`qa_speaker_key_${currentSession}`);
+    }
+    localStorage.removeItem('qa_speaker_key'); // legacy cleanup
     location.reload();
 }
 }
 
 function copySpeakerLink() {
-const speakerKey = localStorage.getItem('qa_speaker_key');
-if (!speakerKey) return;
-
 const params = new URLSearchParams(window.location.search);
 const sessionId = params.get('session') || '';
+if (!sessionId) {
+    alert('A session ID is required before you can copy a speaker link.');
+    return;
+}
+
+const storageKey = `qa_speaker_key_${sessionId}`;
+const speakerKey = localStorage.getItem(storageKey) || localStorage.getItem('qa_speaker_key');
+
+if (!speakerKey) {
+    alert('No speaker key found for this session. Use a link that includes the speaker key.');
+    return;
+}
+
 const speakerUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}&speaker_key=${speakerKey}`;
 
 navigator.clipboard.writeText(speakerUrl).then(() => {
@@ -557,6 +584,10 @@ navigator.clipboard.writeText(speakerUrl).then(() => {
 function showQRCode() {
 const params = new URLSearchParams(window.location.search);
 const sessionId = params.get('session') || '';
+if (!sessionId) {
+    alert('A session ID is required before generating a QR code.');
+    return;
+}
 const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
 
 // Clear previous QR code if any
@@ -593,11 +624,22 @@ if (WORKER_URL.includes('your-username')) {
 
 const qaList = document.getElementById('qa-list');
 const cardTemplate = document.getElementById('qa-card-template');
+const sessionWarning = document.getElementById('session-warning');
+const formElement = document.getElementById('qa-form');
+const submitButton = document.getElementById('submit-btn');
+const questionInputField = document.getElementById('question-input');
+const authorInputField = document.getElementById('author-input');
+const formTitle = document.getElementById('form-title');
+const baseAppUrl = `${window.location.origin}${window.location.pathname}`;
+const sessionCreatorUrl = `${WORKER_URL}/session/new?app=${encodeURIComponent(baseAppUrl)}`;
 
 let sessionId = '';
 let speakerKey = '';
+let speakerStorageKey = '';
 let questions = new Map();
 let votedItems = { questions: [], answers: [] };
+let pollingTimerId = null;
+let sessionUnavailable = false;
 
 const getVotedItems = () => {
     try {
@@ -620,8 +662,54 @@ const addVote = (type, id) => {
     }
 };
 
+const setFormEnabled = (enabled) => {
+    [questionInputField, authorInputField, submitButton].forEach((el) => {
+        if (el) el.disabled = !enabled;
+    });
+    if (formTitle) formTitle.textContent = enabled ? 'Ask a Question' : 'Session unavailable';
+    if (submitButton && enabled) submitButton.textContent = 'Submit';
+};
 
-function generateRandomId(length) { return Math.random().toString(36).substring(2, 2 + length); }
+const displaySessionWarning = (messageHtml) => {
+    if (!sessionWarning) return;
+    sessionWarning.innerHTML = messageHtml;
+    sessionWarning.style.display = 'block';
+};
+
+const clearSessionWarning = () => {
+    if (!sessionWarning) return;
+    sessionWarning.style.display = 'none';
+    sessionWarning.innerHTML = '';
+};
+
+const stopPolling = () => {
+    if (pollingTimerId) {
+        clearInterval(pollingTimerId);
+        pollingTimerId = null;
+    }
+};
+
+const startPolling = () => {
+    stopPolling();
+    pollingTimerId = setInterval(fetchAndRefresh, POLLING_INTERVAL_MS);
+};
+
+const handleSessionMissing = (reason) => {
+    const message = reason === 'missing'
+        ? `No session selected. <a href="${sessionCreatorUrl}" target="_blank" rel="noopener">Create a new session</a> and share the audience link with participants.`
+        : `We couldn't find this session. It might have expired or was never created. <a href="${sessionCreatorUrl}" target="_blank" rel="noopener">Create a new session</a> to get a fresh link.`;
+
+    displaySessionWarning(message);
+    qaList.innerHTML = '<div class="empty-state">Session unavailable.</div>';
+    setFormEnabled(false);
+    sessionUnavailable = true;
+    speakerKey = '';
+    speakerStorageKey = '';
+    document.body.classList.remove('speaker-view');
+    questions.clear();
+    stopPolling();
+};
+
 function formatTimeAgo(dateString) {
     const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
     if (seconds < 60) return "Just now";
@@ -720,14 +808,26 @@ function sortCards() {
 }
 
 async function fetchAndRefresh() {
+    if (!sessionId || sessionUnavailable) return;
+
     try {
         const url = speakerKey 
             ? `${WORKER_URL}/api/${sessionId}/questions?speaker_key=${speakerKey}`
             : `${WORKER_URL}/api/${sessionId}/questions`;
-        
+
         const response = await fetch(url);
+        if (response.status === 404) {
+            handleSessionMissing('not-found');
+            return;
+        }
         if (!response.ok) return;
+
         const newQuestions = await response.json();
+        if (!sessionUnavailable) {
+            clearSessionWarning();
+            setFormEnabled(true);
+        }
+        sessionUnavailable = false;
 
         const newQuestionIds = new Set(newQuestions.map(q => q.id));
         const currentQuestionIds = new Set(Array.from(questions.keys()));
@@ -740,7 +840,7 @@ async function fetchAndRefresh() {
                 questions.delete(id);
             }
         }
-        
+
         if (newQuestions.length === 0 && questions.size === 0) {
             qaList.innerHTML = '<div class="empty-state">No questions yet. Be the first to ask!</div>';
             return;
@@ -754,45 +854,59 @@ async function fetchAndRefresh() {
             if (!card) {
                 card = cardTemplate.content.cloneNode(true).firstElementChild;
                 card.dataset.questionId = q.id;
-                card.classList.add('new-card'); // For animation
+                card.classList.add('new-card');
                 qaList.appendChild(card);
                 requestAnimationFrame(() => card.classList.remove('new-card'));
             }
             updateCard(card, q);
             questions.set(q.id, q);
         });
-        
+
         sortCards();
     } catch (error) {
-        console.error("Polling failed:", error);
+        console.error('Polling failed:', error);
     }
 }
 
 // --- EVENT LISTENERS ---
 
-document.getElementById('qa-form').addEventListener('submit', async (e) => {
+formElement.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = e.target.querySelector('.submit-btn');
-    const questionInput = e.target.querySelector('#question-input');
-    const authorInput = e.target.querySelector('#author-input');
-    
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    if (!sessionId || sessionUnavailable) {
+        alert('A valid session is required before submitting questions.');
+        return;
+    }
+
+    if (!questionInputField.value.trim()) {
+        questionInputField.focus();
+        return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
     try {
-        await fetch(`${WORKER_URL}/api/${sessionId}/questions`, {
+        const response = await fetch(`${WORKER_URL}/api/${sessionId}/questions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                questionText: questionInput.value,
-                authorName: authorInput.value,
+                questionText: questionInputField.value,
+                authorName: authorInputField.value,
             }),
         });
-        questionInput.value = '';
-        await fetchAndRefresh(); // Immediate refresh after submitting
-    } catch (error) { console.error('Submit failed:', error); }
-    finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
+
+        if (response.status === 404) {
+            handleSessionMissing('not-found');
+            return;
+        }
+        if (!response.ok) return;
+
+        questionInputField.value = '';
+        await fetchAndRefresh();
+    } catch (error) {
+        console.error('Submit failed:', error);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit';
     }
 });
 
@@ -818,15 +932,33 @@ qaList.addEventListener('click', async (e) => {
     };
     
     const speakerRequest = async (endpoint) => {
+        if (!speakerKey) {
+            alert('Speaker key missing. Use a speaker link for this session.');
+            return;
+        }
         e.target.disabled = true;
         const originalText = e.target.textContent;
         e.target.textContent = 'Processing...';
         
         try {
-            await fetch(`${WORKER_URL}/api/questions/${questionId}/${endpoint}`, {
+            const response = await fetch(`${WORKER_URL}/api/questions/${questionId}/${endpoint}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ speakerKey })
             });
+
+            if (response.status === 403) {
+                alert('Speaker key is not valid for this session. Request a fresh speaker link.');
+                if (speakerStorageKey) localStorage.removeItem(speakerStorageKey);
+                speakerKey = '';
+                document.body.classList.remove('speaker-view');
+                qaList.querySelectorAll('.speaker-actions').forEach(section => { section.style.display = 'none'; });
+                e.target.textContent = originalText;
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Speaker action failed with status ${response.status}`);
+            }
             await fetchAndRefresh(); // Immediate refresh after speaker action
         } catch (error) {
             console.error(`Speaker action ${endpoint} failed:`, error);
@@ -849,39 +981,59 @@ qaList.addEventListener('click', async (e) => {
 // --- INITIALIZATION ---
 function initializeApp() {
     const params = new URLSearchParams(window.location.search);
-    sessionId = params.get('session');
+    sessionId = params.get('session') || '';
+
+    if (!sessionId) {
+        document.getElementById('session-id-display').textContent = '—';
+        handleSessionMissing('missing');
+        return;
+    }
+
+    speakerStorageKey = `qa_speaker_key_${sessionId}`;
     const urlSpeakerKey = params.get('speaker_key');
 
-    // Handle speaker key - store it and remove from URL
     if (urlSpeakerKey) {
-        localStorage.setItem('qa_speaker_key', urlSpeakerKey);
+        localStorage.setItem(speakerStorageKey, urlSpeakerKey);
+        localStorage.removeItem('qa_speaker_key');
         params.delete('speaker_key');
         const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
         window.history.replaceState({}, '', newUrl);
+        speakerKey = urlSpeakerKey;
+    } else {
+        speakerKey = localStorage.getItem(speakerStorageKey) || '';
+        if (!speakerKey) {
+            const legacyKey = localStorage.getItem('qa_speaker_key');
+            if (legacyKey) {
+                localStorage.setItem(speakerStorageKey, legacyKey);
+                localStorage.removeItem('qa_speaker_key');
+                speakerKey = legacyKey;
+            }
+        }
     }
-    
-    // Always try to get speaker key from storage
-    speakerKey = localStorage.getItem('qa_speaker_key') || '';
 
-    if (!sessionId) {
-        sessionId = Math.random().toString(36).substring(2, 10);
-        const newParams = new URLSearchParams();
-        newParams.set('session', sessionId);
-        window.history.replaceState({}, '', `?${newParams.toString()}`);
-    }
-    
-    votedItems = getVotedItems();
-    
     document.getElementById('session-id-display').textContent = sessionId;
-    if(speakerKey) document.body.classList.add('speaker-view');
+    if (speakerKey) {
+        document.body.classList.add('speaker-view');
+    } else {
+        document.body.classList.remove('speaker-view');
+    }
 
-    fetchAndRefresh(); // Initial fetch
-    setInterval(fetchAndRefresh, POLLING_INTERVAL_MS); // Start polling
+    clearSessionWarning();
+    setFormEnabled(true);
+    sessionUnavailable = false;
+    votedItems = getVotedItems();
+
+    fetchAndRefresh();
+    startPolling();
 }
 
 // Handle mobile ask button click
 document.querySelector('.mobile-ask-btn').addEventListener('click', (e) => {
     e.preventDefault();
+    if (submitButton.disabled) {
+        alert('The session is not ready for questions yet. Create a session first.');
+        return;
+    }
     const form = document.getElementById('qa-form');
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => {
