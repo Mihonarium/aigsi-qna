@@ -58,6 +58,18 @@ padding: clamp(1rem, 5vw, 3rem);
 .side-panel { grid-area: aside; position: sticky; top: 2rem; align-self: start; }
 }
 
+body.session-unavailable .app-container {
+grid-template-columns: 1fr;
+}
+
+body.session-unavailable .side-panel {
+display: none;
+}
+
+body.session-unavailable .mobile-ask-btn {
+display: none;
+}
+
 .app-header {
 grid-column: 1 / -1;
 text-align: center;
@@ -100,6 +112,32 @@ font-size: 0.9rem;
 line-height: 1.5;
 }
 .session-warning a { color: #ffaba8; text-decoration: underline; }
+
+.manage-session-btn {
+background: rgba(255, 255, 255, 0.1);
+border: 1px solid rgba(255, 255, 255, 0.2);
+color: var(--text-primary);
+padding: 0.4rem 0.8rem;
+border-radius: 99px;
+font-size: 0.85rem;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.2s;
+display: inline-flex;
+align-items: center;
+gap: 0.4rem;
+margin: -0.2rem 0 -0.2rem 0.5rem;
+}
+.manage-session-btn:hover:not(:disabled) {
+background: rgba(255, 255, 255, 0.15);
+border-color: rgba(255, 255, 255, 0.3);
+transform: translateY(-1px);
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.manage-session-btn:disabled {
+cursor: not-allowed;
+opacity: 0.5;
+}
 
 .session-controls {
 background: rgba(22, 27, 34, 0.8);
@@ -214,6 +252,10 @@ transform: none;
 box-shadow: none;
 }
 
+.session-controls[data-visible="false"] {
+display: none;
+}
+
 /* Speaker Mode Indicator */
 .speaker-indicator {
 background: var(--green);
@@ -282,6 +324,8 @@ background-color: var(--card-color);
 border: 1px solid var(--border-color);
 border-radius: 12px;
 padding: 1.5rem;
+position: relative;
+overflow: hidden;
 }
 .form-container h2 {
 font-size: 1.25rem;
@@ -312,6 +356,29 @@ transition: border-color 0.2s, box-shadow 0.2s;
 outline: none;
 border-color: var(--blue);
 box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
+}
+.form-container.disabled form {
+pointer-events: none;
+opacity: 0.35;
+filter: saturate(0.6);
+}
+.form-container.disabled::after {
+content: 'Create or join a session to ask questions';
+position: absolute;
+top: 1.5rem;
+left: 1.5rem;
+right: 1.5rem;
+bottom: 1.5rem;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+background: rgba(13, 17, 23, 0.92);
+border: 1px dashed rgba(201, 209, 217, 0.3);
+border-radius: 10px;
+font-size: 0.95rem;
+color: var(--text-secondary);
+padding: 1rem;
 }
 .submit-btn {
 width: 100%;
@@ -553,7 +620,7 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 </style>
 </head>
-<body>
+<body class="session-unavailable">
 
 <div class="app-container" id="app">
 <header class="app-header">
@@ -568,6 +635,7 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         </svg>
         QR Code
     </button>
+    <button class="manage-session-btn" id="manage-session-btn" type="button" aria-expanded="true" aria-controls="session-controls">Hide Session Tools</button>
 </div>
 <div class="speaker-indicator" id="speaker-indicator">
     🎤 Speaker Mode Active
@@ -575,7 +643,7 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
 </div>
 <div class="session-warning" id="session-warning"></div>
-<div class="session-controls" id="session-controls">
+<div class="session-controls" id="session-controls" data-visible="true">
     <h2>Session Setup</h2>
     <p>Create a fresh session or join an existing one.</p>
     <button id="create-session-btn" type="button">Create New Session</button>
@@ -768,8 +836,11 @@ const submitButton = document.getElementById('submit-btn');
 const questionInputField = document.getElementById('question-input');
 const authorInputField = document.getElementById('author-input');
 const formTitle = document.getElementById('form-title');
+const formContainer = document.querySelector('.form-container');
 const baseAppUrl = `${window.location.origin}${window.location.pathname}`;
 const createSessionButton = document.getElementById('create-session-btn');
+const sessionControlsContainer = document.getElementById('session-controls');
+const manageSessionButton = document.getElementById('manage-session-btn');
 const sessionLinksContainer = document.getElementById('session-links');
 const audienceLinkInput = document.getElementById('audience-link');
 const speakerLinkInput = document.getElementById('speaker-link');
@@ -812,7 +883,13 @@ const setFormEnabled = (enabled) => {
         if (el) el.disabled = !enabled;
     });
     if (formTitle) formTitle.textContent = enabled ? 'Ask a Question' : 'Session unavailable';
-    if (submitButton && enabled) submitButton.textContent = 'Submit';
+    if (submitButton) submitButton.textContent = enabled ? 'Submit' : 'Session Required';
+    if (questionInputField) {
+        questionInputField.placeholder = enabled
+            ? 'Type your question here'
+            : 'Create or join a session to ask questions';
+    }
+    if (formContainer) formContainer.classList.toggle('disabled', !enabled);
 };
 
 const displaySessionWarning = (messageHtml) => {
@@ -825,6 +902,33 @@ const clearSessionWarning = () => {
     if (!sessionWarning) return;
     sessionWarning.style.display = 'none';
     sessionWarning.innerHTML = '';
+};
+
+const showSessionControls = () => {
+    if (sessionControlsContainer) {
+        sessionControlsContainer.dataset.visible = 'true';
+    }
+    if (manageSessionButton) {
+        manageSessionButton.disabled = false;
+        manageSessionButton.textContent = 'Hide Session Tools';
+        manageSessionButton.setAttribute('aria-expanded', 'true');
+    }
+};
+
+const hideSessionControls = () => {
+    if (sessionControlsContainer) {
+        sessionControlsContainer.dataset.visible = 'false';
+    }
+    if (manageSessionButton) {
+        manageSessionButton.disabled = false;
+        manageSessionButton.textContent = 'Session Tools';
+        manageSessionButton.setAttribute('aria-expanded', 'false');
+    }
+};
+
+const areSessionControlsVisible = () => {
+    if (!sessionControlsContainer) return false;
+    return sessionControlsContainer.dataset.visible !== 'false';
 };
 
 const stopPolling = () => {
@@ -872,8 +976,12 @@ const handleSessionMissing = (reason) => {
     speakerKey = '';
     speakerStorageKey = '';
     document.body.classList.remove('speaker-view');
+    document.body.classList.remove('session-active');
+    document.body.classList.add('session-unavailable');
     questions.clear();
     clearSessionLinks();
+    showSessionControls();
+    if (manualSessionInput) manualSessionInput.value = '';
     stopPolling();
 };
 
@@ -907,6 +1015,8 @@ const switchSession = (newSessionId, incomingSpeakerKey = '') => {
 
     document.getElementById('session-id-display').textContent = sessionId;
     document.body.classList.toggle('speaker-view', Boolean(speakerKey));
+    document.body.classList.remove('session-unavailable');
+    document.body.classList.add('session-active');
 
     if (!speakerKey) {
         clearSessionLinks();
@@ -919,6 +1029,9 @@ const switchSession = (newSessionId, incomingSpeakerKey = '') => {
     clearSessionWarning();
     setFormEnabled(true);
     sessionUnavailable = false;
+    hideSessionControls();
+    if (manageSessionButton) manageSessionButton.disabled = false;
+    if (manualSessionInput) manualSessionInput.value = sessionId;
 
     const newUrl = `?session=${encodeURIComponent(sessionId)}`;
     if (window.location.search !== newUrl) {
@@ -952,7 +1065,8 @@ const createSessionFromUi = async () => {
 
         updateSessionLinks(audienceUrl, speakerUrl);
         switchSession(newSessionId, newSpeakerKey);
-        if (manualSessionInput) manualSessionInput.value = '';
+        showSessionControls();
+        if (manageSessionButton) manageSessionButton.disabled = false;
     } catch (error) {
         console.error('Create session failed:', error);
         alert('Failed to create a new session. Please try again.');
@@ -1131,6 +1245,17 @@ async function fetchAndRefresh() {
 }
 
 // --- EVENT LISTENERS ---
+
+if (manageSessionButton) {
+    manageSessionButton.addEventListener('click', () => {
+        if (manageSessionButton.disabled) return;
+        if (areSessionControlsVisible()) {
+            hideSessionControls();
+        } else {
+            showSessionControls();
+        }
+    });
+}
 
 if (createSessionButton) {
     createSessionButton.addEventListener('click', createSessionFromUi);
