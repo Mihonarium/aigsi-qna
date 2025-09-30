@@ -101,6 +101,119 @@ line-height: 1.5;
 }
 .session-warning a { color: #ffaba8; text-decoration: underline; }
 
+.session-controls {
+background: rgba(22, 27, 34, 0.8);
+border: 1px solid var(--border-color);
+border-radius: 12px;
+padding: 1rem;
+margin-top: 1rem;
+display: flex;
+flex-direction: column;
+gap: 1rem;
+text-align: left;
+max-width: 480px;
+margin-left: auto;
+margin-right: auto;
+}
+.session-controls h2 {
+font-size: 1.1rem;
+margin-bottom: 0.25rem;
+text-align: center;
+}
+.session-controls p {
+font-size: 0.85rem;
+color: var(--text-secondary);
+text-align: center;
+}
+.session-controls button {
+background: var(--accent-gradient);
+color: white;
+padding: 0.6rem 1rem;
+border: none;
+border-radius: 8px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.session-controls button:hover:not(:disabled) {
+transform: translateY(-1px);
+box-shadow: 0 8px 18px rgba(168, 85, 247, 0.35);
+}
+.session-controls button:disabled {
+cursor: wait;
+opacity: 0.7;
+}
+.session-links {
+display: none;
+flex-direction: column;
+gap: 0.75rem;
+border-top: 1px solid rgba(48, 54, 61, 0.7);
+padding-top: 0.75rem;
+}
+.session-link-row {
+display: flex;
+gap: 0.5rem;
+align-items: center;
+}
+.session-link-row label {
+min-width: 90px;
+font-size: 0.85rem;
+color: var(--text-secondary);
+}
+.session-link-row input {
+flex: 1;
+background: rgba(13, 17, 23, 0.8);
+border: 1px solid var(--border-color);
+border-radius: 6px;
+padding: 0.5rem;
+color: var(--text-primary);
+font-size: 0.85rem;
+}
+.session-link-row button {
+background: rgba(168, 85, 247, 0.2);
+color: #d8b4fe;
+border-radius: 6px;
+border: 1px solid rgba(168, 85, 247, 0.6);
+padding: 0.45rem 0.75rem;
+font-size: 0.8rem;
+}
+.session-link-row button:hover:not(:disabled) {
+transform: none;
+box-shadow: none;
+background: rgba(168, 85, 247, 0.3);
+}
+.manual-session {
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+}
+.manual-session label {
+font-size: 0.85rem;
+color: var(--text-secondary);
+}
+.manual-session-row {
+display: flex;
+gap: 0.5rem;
+}
+.manual-session-row input {
+flex: 1;
+background: rgba(13, 17, 23, 0.8);
+border: 1px solid var(--border-color);
+border-radius: 6px;
+padding: 0.5rem;
+color: var(--text-primary);
+font-size: 0.9rem;
+}
+.manual-session-row button {
+background: var(--blue);
+color: white;
+border-radius: 6px;
+}
+.manual-session-row button:hover:not(:disabled) {
+transform: none;
+box-shadow: none;
+}
+
 /* Speaker Mode Indicator */
 .speaker-indicator {
 background: var(--green);
@@ -462,6 +575,31 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
 </div>
 <div class="session-warning" id="session-warning"></div>
+<div class="session-controls" id="session-controls">
+    <h2>Session Setup</h2>
+    <p>Create a fresh session or join an existing one.</p>
+    <button id="create-session-btn" type="button">Create New Session</button>
+    <div class="session-links" id="session-links">
+        <div class="session-link-row">
+            <label for="audience-link">Audience</label>
+            <input id="audience-link" type="text" readonly>
+            <button id="copy-audience-link" type="button">Copy</button>
+        </div>
+        <div class="session-link-row">
+            <label for="speaker-link">Speaker</label>
+            <input id="speaker-link" type="text" readonly>
+            <button id="copy-speaker-link" type="button">Copy</button>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">Share the speaker link privately—anyone with it can manage questions.</p>
+    </div>
+    <div class="manual-session">
+        <label for="manual-session-input">Have a session ID?</label>
+        <div class="manual-session-row">
+            <input id="manual-session-input" type="text" placeholder="Enter session ID">
+            <button id="manual-session-join-btn" type="button">Join</button>
+        </div>
+    </div>
+</div>
 <a href="#qa-form" class="mobile-ask-btn">✨ Ask a Question</a>
 </header>
 
@@ -631,7 +769,14 @@ const questionInputField = document.getElementById('question-input');
 const authorInputField = document.getElementById('author-input');
 const formTitle = document.getElementById('form-title');
 const baseAppUrl = `${window.location.origin}${window.location.pathname}`;
-const sessionCreatorUrl = `${WORKER_URL}/session/new?app=${encodeURIComponent(baseAppUrl)}`;
+const createSessionButton = document.getElementById('create-session-btn');
+const sessionLinksContainer = document.getElementById('session-links');
+const audienceLinkInput = document.getElementById('audience-link');
+const speakerLinkInput = document.getElementById('speaker-link');
+const copyAudienceButton = document.getElementById('copy-audience-link');
+const copySpeakerButton = document.getElementById('copy-speaker-link');
+const manualSessionInput = document.getElementById('manual-session-input');
+const manualSessionJoinButton = document.getElementById('manual-session-join-btn');
 
 let sessionId = '';
 let speakerKey = '';
@@ -694,10 +839,31 @@ const startPolling = () => {
     pollingTimerId = setInterval(fetchAndRefresh, POLLING_INTERVAL_MS);
 };
 
+const copyToClipboard = async (value, description) => {
+    try {
+        await navigator.clipboard.writeText(value);
+    } catch {
+        prompt(`Copy ${description ?? 'value'}:`, value);
+    }
+};
+
+const updateSessionLinks = (audienceUrl, speakerUrl) => {
+    if (!sessionLinksContainer) return;
+    if (audienceLinkInput) audienceLinkInput.value = audienceUrl;
+    if (speakerLinkInput) speakerLinkInput.value = speakerUrl;
+    sessionLinksContainer.style.display = 'flex';
+};
+
+const clearSessionLinks = () => {
+    if (sessionLinksContainer) sessionLinksContainer.style.display = 'none';
+    if (audienceLinkInput) audienceLinkInput.value = '';
+    if (speakerLinkInput) speakerLinkInput.value = '';
+};
+
 const handleSessionMissing = (reason) => {
     const message = reason === 'missing'
-        ? `No session selected. <a href="${sessionCreatorUrl}" target="_blank" rel="noopener">Create a new session</a> and share the audience link with participants.`
-        : `We couldn't find this session. It might have expired or was never created. <a href="${sessionCreatorUrl}" target="_blank" rel="noopener">Create a new session</a> to get a fresh link.`;
+        ? `No session selected. Use the <strong>Create New Session</strong> button above or enter a session ID to join.`
+        : `We couldn't find this session. It might have expired or was never created. Try entering a different session ID or create a new session above.`;
 
     displaySessionWarning(message);
     qaList.innerHTML = '<div class="empty-state">Session unavailable.</div>';
@@ -707,7 +873,103 @@ const handleSessionMissing = (reason) => {
     speakerStorageKey = '';
     document.body.classList.remove('speaker-view');
     questions.clear();
+    clearSessionLinks();
     stopPolling();
+};
+
+const switchSession = (newSessionId, incomingSpeakerKey = '') => {
+    if (!newSessionId) {
+        document.getElementById('session-id-display').textContent = '—';
+        handleSessionMissing('missing');
+        return;
+    }
+
+    stopPolling();
+
+    sessionId = newSessionId;
+    speakerStorageKey = `qa_speaker_key_${sessionId}`;
+
+    if (incomingSpeakerKey) {
+        speakerKey = incomingSpeakerKey;
+        localStorage.setItem(speakerStorageKey, speakerKey);
+        localStorage.removeItem('qa_speaker_key');
+    } else {
+        speakerKey = localStorage.getItem(speakerStorageKey) || '';
+        if (!speakerKey) {
+            const legacyKey = localStorage.getItem('qa_speaker_key');
+            if (legacyKey) {
+                localStorage.setItem(speakerStorageKey, legacyKey);
+                localStorage.removeItem('qa_speaker_key');
+                speakerKey = legacyKey;
+            }
+        }
+    }
+
+    document.getElementById('session-id-display').textContent = sessionId;
+    document.body.classList.toggle('speaker-view', Boolean(speakerKey));
+
+    if (!speakerKey) {
+        clearSessionLinks();
+    }
+
+    questions.clear();
+    qaList.innerHTML = '<div class="loading-state" id="loading-state">Loading questions...</div>';
+
+    votedItems = getVotedItems();
+    clearSessionWarning();
+    setFormEnabled(true);
+    sessionUnavailable = false;
+
+    const newUrl = `?session=${encodeURIComponent(sessionId)}`;
+    if (window.location.search !== newUrl) {
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    fetchAndRefresh();
+    startPolling();
+};
+
+const createSessionFromUi = async () => {
+    if (!createSessionButton) return;
+    const originalText = createSessionButton.textContent;
+    createSessionButton.disabled = true;
+    createSessionButton.textContent = 'Creating...';
+
+    try {
+        const response = await fetch(`${WORKER_URL}/api/sessions`, { method: 'POST' });
+        if (!response.ok) throw new Error(`Create session failed with status ${response.status}`);
+
+        const payload = await response.json();
+        const newSessionId = payload?.sessionId;
+        const newSpeakerKey = payload?.speakerKey;
+
+        if (!newSessionId || !newSpeakerKey) {
+            throw new Error('Session API returned an unexpected response.');
+        }
+
+        const audienceUrl = `${baseAppUrl}?session=${newSessionId}`;
+        const speakerUrl = `${baseAppUrl}?session=${newSessionId}&speaker_key=${newSpeakerKey}`;
+
+        updateSessionLinks(audienceUrl, speakerUrl);
+        switchSession(newSessionId, newSpeakerKey);
+        if (manualSessionInput) manualSessionInput.value = '';
+    } catch (error) {
+        console.error('Create session failed:', error);
+        alert('Failed to create a new session. Please try again.');
+    } finally {
+        createSessionButton.disabled = false;
+        createSessionButton.textContent = originalText;
+    }
+};
+
+const joinSessionFromInput = () => {
+    if (!manualSessionInput) return;
+    const enteredId = manualSessionInput.value.trim();
+    if (!enteredId) return;
+
+    const normalizedId = enteredId.toLowerCase();
+    manualSessionInput.value = normalizedId;
+    switchSession(normalizedId);
 };
 
 function formatTimeAgo(dateString) {
@@ -870,6 +1132,37 @@ async function fetchAndRefresh() {
 
 // --- EVENT LISTENERS ---
 
+if (createSessionButton) {
+    createSessionButton.addEventListener('click', createSessionFromUi);
+}
+
+if (copyAudienceButton) {
+    copyAudienceButton.addEventListener('click', () => {
+        if (!audienceLinkInput || !audienceLinkInput.value) return;
+        copyToClipboard(audienceLinkInput.value, 'Audience link');
+    });
+}
+
+if (copySpeakerButton) {
+    copySpeakerButton.addEventListener('click', () => {
+        if (!speakerLinkInput || !speakerLinkInput.value) return;
+        copyToClipboard(speakerLinkInput.value, 'Speaker link');
+    });
+}
+
+if (manualSessionJoinButton) {
+    manualSessionJoinButton.addEventListener('click', joinSessionFromInput);
+}
+
+if (manualSessionInput) {
+    manualSessionInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            joinSessionFromInput();
+        }
+    });
+}
+
 formElement.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!sessionId || sessionUnavailable) {
@@ -981,50 +1274,16 @@ qaList.addEventListener('click', async (e) => {
 // --- INITIALIZATION ---
 function initializeApp() {
     const params = new URLSearchParams(window.location.search);
-    sessionId = params.get('session') || '';
+    const initialSession = params.get('session') || '';
+    const urlSpeakerKey = params.get('speaker_key') || '';
 
-    if (!sessionId) {
+    if (!initialSession) {
         document.getElementById('session-id-display').textContent = '—';
         handleSessionMissing('missing');
         return;
     }
 
-    speakerStorageKey = `qa_speaker_key_${sessionId}`;
-    const urlSpeakerKey = params.get('speaker_key');
-
-    if (urlSpeakerKey) {
-        localStorage.setItem(speakerStorageKey, urlSpeakerKey);
-        localStorage.removeItem('qa_speaker_key');
-        params.delete('speaker_key');
-        const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-        speakerKey = urlSpeakerKey;
-    } else {
-        speakerKey = localStorage.getItem(speakerStorageKey) || '';
-        if (!speakerKey) {
-            const legacyKey = localStorage.getItem('qa_speaker_key');
-            if (legacyKey) {
-                localStorage.setItem(speakerStorageKey, legacyKey);
-                localStorage.removeItem('qa_speaker_key');
-                speakerKey = legacyKey;
-            }
-        }
-    }
-
-    document.getElementById('session-id-display').textContent = sessionId;
-    if (speakerKey) {
-        document.body.classList.add('speaker-view');
-    } else {
-        document.body.classList.remove('speaker-view');
-    }
-
-    clearSessionWarning();
-    setFormEnabled(true);
-    sessionUnavailable = false;
-    votedItems = getVotedItems();
-
-    fetchAndRefresh();
-    startPolling();
+    switchSession(initialSession, urlSpeakerKey);
 }
 
 // Handle mobile ask button click
