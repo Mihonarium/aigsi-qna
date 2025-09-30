@@ -62,11 +62,25 @@ body.session-unavailable .app-container {
 grid-template-columns: 1fr;
 }
 
-body.session-unavailable .side-panel {
+body.session-unavailable .qa-list-container,
+body.session-unavailable .side-panel,
+body.session-unavailable .mobile-ask-btn,
+body.session-unavailable .speaker-indicator {
 display: none;
 }
 
-body.session-unavailable .mobile-ask-btn {
+body.session-unavailable .session-controls {
+max-width: 480px;
+margin-left: auto;
+margin-right: auto;
+}
+
+body.session-unavailable .session-info {
+justify-content: center;
+}
+
+body.session-unavailable .manage-session-btn,
+body.session-unavailable .session-info-divider {
 display: none;
 }
 
@@ -99,6 +113,8 @@ gap: 0.75rem;
 margin-top: 1.5rem;
 }
 .session-info span { font-weight: 600; color: var(--text-primary); }
+
+.session-info .session-info-divider { color: var(--border-color); }
 
 .session-warning {
 background: rgba(218, 54, 51, 0.12);
@@ -628,14 +644,14 @@ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 <p>Ask your questions to the speaker. The most upvoted questions rise to the top. An AI assistant will provide initial answers.</p>
 <div class="session-info" id="session-info">
     <span>Session ID: <span id="session-id-display"></span></span>
-    <span style="color: var(--border-color);">|</span>
+    <span class="session-info-divider">|</span>
     <button class="qr-button" onclick="showQRCode()">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M0 0h6v6H0V0zm2 2v2h2V2H2zm8-2h6v6h-6V0zm2 2v2h2V2h-2zM0 10h6v6H0v-6zm2 2v2h2v-2H2zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2z"/>
         </svg>
         QR Code
     </button>
-    <button class="manage-session-btn" id="manage-session-btn" type="button" aria-expanded="true" aria-controls="session-controls">Hide Session Tools</button>
+    <button class="manage-session-btn" id="manage-session-btn" type="button" aria-expanded="false" aria-controls="session-controls">Session Tools</button>
 </div>
 <div class="speaker-indicator" id="speaker-indicator">
     🎤 Speaker Mode Active
@@ -878,18 +894,31 @@ const addVote = (type, id) => {
     }
 };
 
-const setFormEnabled = (enabled) => {
+const setFormEnabled = (enabled, options = {}) => {
+    const reason = options.reason || 'default';
+    const disableOverlay = !enabled && reason === 'initial';
+
     [questionInputField, authorInputField, submitButton].forEach((el) => {
         if (el) el.disabled = !enabled;
     });
-    if (formTitle) formTitle.textContent = enabled ? 'Ask a Question' : 'Session unavailable';
-    if (submitButton) submitButton.textContent = enabled ? 'Submit' : 'Session Required';
+
+    if (formTitle) {
+        formTitle.textContent = enabled ? 'Ask a Question' : disableOverlay ? 'Ask a Question' : 'Session unavailable';
+    }
+
+    if (submitButton) {
+        submitButton.textContent = enabled ? 'Submit' : disableOverlay ? 'Submit' : 'Session Required';
+    }
+
     if (questionInputField) {
         questionInputField.placeholder = enabled
             ? 'Type your question here'
-            : 'Create or join a session to ask questions';
+            : disableOverlay ? 'Type your question here' : 'Create or join a session to ask questions';
     }
-    if (formContainer) formContainer.classList.toggle('disabled', !enabled);
+
+    if (formContainer) {
+        formContainer.classList.toggle('disabled', !enabled && !disableOverlay);
+    }
 };
 
 const displaySessionWarning = (messageHtml) => {
@@ -965,13 +994,19 @@ const clearSessionLinks = () => {
 };
 
 const handleSessionMissing = (reason) => {
-    const message = reason === 'missing'
-        ? `No session selected. Use the <strong>Create New Session</strong> button above or enter a session ID to join.`
-        : `We couldn't find this session. It might have expired or was never created. Try entering a different session ID or create a new session above.`;
+    const isInitial = reason === 'missing';
 
-    displaySessionWarning(message);
-    qaList.innerHTML = '<div class="empty-state">Session unavailable.</div>';
-    setFormEnabled(false);
+    if (isInitial) {
+        clearSessionWarning();
+    } else {
+        displaySessionWarning(`We couldn't find this session. It might have expired or was never created. Try entering a different session ID or create a new session above.`);
+    }
+
+    qaList.innerHTML = isInitial
+        ? '<div class="empty-state">Create or join a session to see questions here.</div>'
+        : '<div class="empty-state">Session unavailable.</div>';
+
+    setFormEnabled(false, { reason: isInitial ? 'initial' : 'error' });
     sessionUnavailable = true;
     speakerKey = '';
     speakerStorageKey = '';
@@ -980,7 +1015,17 @@ const handleSessionMissing = (reason) => {
     document.body.classList.add('session-unavailable');
     questions.clear();
     clearSessionLinks();
-    showSessionControls();
+
+    if (sessionControlsContainer) {
+        sessionControlsContainer.dataset.visible = 'true';
+    }
+
+    if (manageSessionButton) {
+        manageSessionButton.disabled = true;
+        manageSessionButton.textContent = 'Session Tools';
+        manageSessionButton.setAttribute('aria-expanded', 'false');
+    }
+
     if (manualSessionInput) manualSessionInput.value = '';
     stopPolling();
 };
