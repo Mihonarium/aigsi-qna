@@ -68,7 +68,8 @@ a { color: var(--accent); }
     background: var(--primary-hover);
     border-color: var(--primary-hover);
 }
-.btn-secondary, .qr-button, .speaker-indicator button, .link-field button, .modal-actions button:not(.modal-confirm), .modal-copy-field button, .close-qr {
+.btn-secondary, .qr-button, .speaker-indicator button, .speaker-indicator .projector-link, .link-field button, .modal-actions button:not(.modal-confirm), .modal-copy-field button, .close-qr, .pj-fullscreen {
+    text-decoration: none;
     min-height: 44px;
     padding: 0 14px;
     border: 1px solid var(--border-strong);
@@ -455,6 +456,67 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
 #qrcode img, #qrcode canvas { max-width: 100%; height: auto; }
 .qr-url { padding: 8px 10px; border-radius: 6px; background: var(--bg); font-size: 0.9375rem; word-break: break-all; }
 .close-qr { margin-top: 16px; min-width: 120px; }
+.qr-projector { margin: 12px 0 0; }
+.qr-projector a, .session-created-projector a { display: inline-block; padding: 10px 0; font-weight: 600; }
+.session-created .session-created-projector { margin: 0 0 4px; color: var(--muted); }
+
+/* Projector view */
+.projector { display: none; }
+body.projector-view { background: #ffffff; }
+body.projector-view .site-bar, body.projector-view .app-container { display: none; }
+body.projector-view .projector { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+.pj-header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px clamp(16px, 2.5vw, 48px);
+    border-bottom: 1px solid var(--border);
+}
+.pj-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--navy); font-weight: 700; font-size: 1.125rem; }
+.pj-brand svg { width: 28px; height: 28px; flex: none; }
+.pj-brand-divider { width: 1px; height: 22px; background: var(--border-strong); margin: 0 4px; }
+.pj-brand-product { color: var(--muted); font-weight: 500; }
+.pj-body {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(240px, 30%) minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 80px);
+    padding: clamp(16px, 3.5vh, 56px) clamp(16px, 3vw, 64px);
+}
+.pj-join { min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.pj-qr { width: 100%; max-width: min(100%, 56vh); }
+.pj-qr img, .pj-qr canvas { width: 100%; height: auto; }
+.pj-scan { margin: 2.5vh 0 0; font-size: clamp(20px, 3.4vh, 46px); font-weight: 700; line-height: 1.2; color: var(--navy); white-space: nowrap; }
+.pj-host { margin: 1vh 0 0; font-size: clamp(18px, 2.8vh, 38px); font-weight: 600; color: var(--text); }
+.pj-code { margin: 0.4vh 0 0; font-size: clamp(16px, 2.6vh, 34px); color: var(--muted); }
+.pj-code strong { color: var(--text); font-weight: 700; letter-spacing: 0.02em; }
+.pj-main { min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.pj-label { margin: 0 0 1.2vh; font-size: clamp(16px, 2.4vh, 32px); font-weight: 600; color: var(--muted); }
+.pj-top { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.pj-top-box { flex: 0 1 auto; min-height: 0; overflow: hidden; }
+.pj-top-text { margin: 0; font-weight: 700; line-height: 1.18; color: var(--text); overflow-wrap: anywhere; white-space: pre-line; }
+.pj-top-meta { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 40px; margin: 1.6vh 0 0; font-size: clamp(18px, 2.8vh, 38px); color: var(--muted); }
+.pj-votes { display: inline-flex; align-items: center; gap: 0.25em; color: var(--primary); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pj-votes svg { width: 1em; height: 1em; flex: none; }
+.pj-next-wrap { flex: none; margin-top: 3vh; padding-top: 2.2vh; border-top: 1px solid var(--border); }
+.pj-next { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.6vh; }
+.pj-next li { display: flex; align-items: baseline; gap: 0.8em; font-size: clamp(16px, 2.5vh, 34px); line-height: 1.3; }
+.pj-next .pj-votes { flex: none; min-width: 3em; }
+.pj-next-text { margin: 0; min-width: 0; color: var(--text); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pj-empty { margin: auto 0; font-size: clamp(22px, 3.8vh, 52px); line-height: 1.3; color: var(--muted); white-space: pre-line; }
+@media (max-width: 760px) {
+    body.projector-view .projector { height: auto; min-height: 100vh; }
+    .pj-body { display: block; padding: 20px 16px 40px; }
+    .pj-join { margin-bottom: 28px; }
+    .pj-qr { max-width: 240px; }
+    .pj-scan { white-space: normal; }
+    .pj-top, .pj-top-box { flex: none; }
+    .pj-top-box { overflow: visible; }
+    .pj-empty { margin: 0; }
+}
 </style>
 </head>
 <body class="session-unavailable">
@@ -489,6 +551,7 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
 <div class="speaker-indicator" id="speaker-indicator">
     <p class="speaker-indicator-text"><strong>Speaker mode.</strong> You can mark questions answered, hide them, and moderate AI answers.</p>
     <button type="button" onclick="copySpeakerLink()" title="Copy the private speaker link">Copy speaker link</button>
+    <a class="projector-link" href="./" target="_blank" rel="noopener">Projector view</a>
     <button type="button" onclick="exitSpeakerMode()" title="Exit speaker mode">Exit speaker mode</button>
 </div>
 <div class="session-warning" id="session-warning" role="alert"></div>
@@ -509,6 +572,7 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
             <button id="copy-speaker-link" type="button" aria-label="Copy speaker link">Copy</button>
         </div>
     </div>
+    <p class="session-created-projector"><a class="projector-link" href="./" target="_blank" rel="noopener">Open the projector view</a> to show the QR code and the top questions on the big screen.</p>
     <p class="session-created-note"><strong>The speaker link is the only way back to speaker mode, so save it now.</strong> Anyone who has it can moderate questions.</p>
     <button type="button" class="btn-secondary" id="session-created-done">I've saved it</button>
 </section>
@@ -556,6 +620,39 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
 </section>
 </main>
 
+<div class="projector" id="projector">
+<header class="pj-header">
+    <span class="pj-brand">
+        <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="41" fill="none" stroke="#0066cc" stroke-width="5"/><circle cx="50" cy="50" r="30" fill="#0066cc"/><rect x="40" y="40" width="20" height="20" fill="#fff"/></svg>
+        <span>AIGSI</span>
+        <span class="pj-brand-divider" aria-hidden="true"></span>
+        <span class="pj-brand-product">Live Q&amp;A</span>
+    </span>
+    <button type="button" class="pj-fullscreen" id="pj-fullscreen">Full screen</button>
+</header>
+<div class="pj-body">
+    <section class="pj-join" aria-label="Join">
+        <div class="pj-qr" id="pj-qr"></div>
+        <p class="pj-scan">Scan to ask a question</p>
+        <p class="pj-host" id="pj-host"></p>
+        <p class="pj-code">Session code: <strong id="pj-code"></strong></p>
+    </section>
+    <section class="pj-main" aria-label="Questions">
+        <p class="pj-empty" id="pj-empty">Questions will appear here.
+Scan the code to ask one.</p>
+        <div class="pj-top" id="pj-top" hidden>
+            <h2 class="pj-label">Top question</h2>
+            <div class="pj-top-box" id="pj-top-box"><p class="pj-top-text" id="pj-top-text"></p></div>
+            <p class="pj-top-meta"><span class="pj-votes" id="pj-top-votes"></span><span id="pj-top-author"></span></p>
+        </div>
+        <div class="pj-next-wrap" id="pj-next-wrap" hidden>
+            <h2 class="pj-label">Up next</h2>
+            <ol class="pj-next" id="pj-next"></ol>
+        </div>
+    </section>
+</div>
+</div>
+
 <template id="qa-card-template">
 <article class="qa-card" data-question-id="">
 <div class="vote-section">
@@ -601,6 +698,7 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
 <p>Point your phone camera at the code.</p>
 <div id="qrcode"></div>
 <div class="qr-url" id="qrUrl"></div>
+<p class="qr-projector"><a class="projector-link" id="qr-projector-link" href="./" target="_blank" rel="noopener">Open the projector view</a></p>
 <button class="close-qr" type="button" onclick="closeQRModal()">Close</button>
 </div>
 </div>
@@ -947,6 +1045,10 @@ try {
 }
 }
 
+function projectorUrlFor(sessionId) {
+    return `${window.location.origin}${window.location.pathname}?session=${encodeURIComponent(sessionId)}&view=projector`;
+}
+
 function showQRCode() {
 const params = new URLSearchParams(window.location.search);
 const sessionId = params.get('session') || '';
@@ -971,6 +1073,7 @@ new QRCode(document.getElementById('qrcode'), {
 
 // Show URL
 document.getElementById('qrUrl').textContent = sessionUrl;
+document.getElementById('qr-projector-link').href = projectorUrlFor(sessionId);
 
 // Show modal
 document.getElementById('qrModal').classList.add('show');
@@ -1237,6 +1340,7 @@ const switchSession = (newSessionId, incomingSpeakerKey = '') => {
     }
 
     document.getElementById('session-id-display').textContent = sessionId;
+    document.querySelectorAll('.projector-link').forEach((link) => { link.href = projectorUrlFor(sessionId); });
     document.body.classList.toggle('speaker-view', Boolean(speakerKey));
     document.body.classList.remove('session-unavailable');
     document.body.classList.add('session-active');
@@ -1686,11 +1790,205 @@ qaList.addEventListener('click', async (e) => {
     else if (e.target.closest('.hide-ai-btn')) speakerRequest('toggle-ai-hide');
 });
 
+// --- PROJECTOR VIEW ---
+// Read-only view for a big screen. It always fetches as the audience does and never sends
+// a speaker key, so hidden questions and hidden AI answers cannot reach the screen.
+function startProjector(projectorSession, incomingSpeakerKey) {
+    if (incomingSpeakerKey) {
+        // Keep a key that arrived in the URL for the normal speaker page, but never use it here.
+        localStorage.setItem(`qa_speaker_key_${projectorSession}`, incomingSpeakerKey);
+        localStorage.removeItem('qa_speaker_key');
+    }
+    const cleanUrl = `?session=${encodeURIComponent(projectorSession)}&view=projector`;
+    if (window.location.search !== cleanUrl) window.history.replaceState({}, '', cleanUrl);
+
+    document.body.className = 'projector-view';
+    const audienceUrl = `${window.location.origin}${window.location.pathname}?session=${encodeURIComponent(projectorSession)}`;
+    const pjEmpty = document.getElementById('pj-empty');
+    const pjTop = document.getElementById('pj-top');
+    const pjTopBox = document.getElementById('pj-top-box');
+    const pjTopText = document.getElementById('pj-top-text');
+    const pjTopVotes = document.getElementById('pj-top-votes');
+    const pjTopAuthor = document.getElementById('pj-top-author');
+    const pjNextWrap = document.getElementById('pj-next-wrap');
+    const pjNext = document.getElementById('pj-next');
+    const fullscreenButton = document.getElementById('pj-fullscreen');
+    const narrowQuery = window.matchMedia('(max-width: 760px)');
+
+    document.getElementById('pj-host').textContent = window.location.host;
+    document.getElementById('pj-code').textContent = projectorSession;
+    try {
+        new QRCode(document.getElementById('pj-qr'), {
+            text: audienceUrl,
+            width: 512,
+            height: 512,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    } catch (error) {
+        console.warn('QR code could not be drawn:', error);
+    }
+
+    const upArrow = () => {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M5 15l7-7 7 7');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        svg.appendChild(path);
+        return svg;
+    };
+    const fillVotes = (element, count) => {
+        const votes = Number(count) || 0;
+        const number = document.createElement('span');
+        number.textContent = String(votes);
+        element.replaceChildren(upArrow(), number);
+        element.setAttribute('aria-label', votes === 1 ? '1 vote' : `${votes} votes`);
+    };
+    const authorLine = (name) => {
+        const trimmed = (name || '').trim();
+        return !trimmed || trimmed.toLowerCase() === 'anonymous' ? 'Asked anonymously' : `Asked by ${trimmed}`;
+    };
+
+    const fitTopQuestion = () => {
+        if (pjTop.hidden) return;
+        if (narrowQuery.matches) {
+            pjTopText.style.fontSize = '28px';
+            return;
+        }
+        const maxPx = Math.max(32, Math.min(window.innerWidth * 0.05, window.innerHeight * 0.1, 112));
+        pjTopText.style.fontSize = `${maxPx}px`;
+        if (pjTopBox.scrollHeight <= pjTopBox.clientHeight + 1) return;
+        let low = 14;
+        let high = maxPx;
+        for (let i = 0; i < 10; i += 1) {
+            const mid = (low + high) / 2;
+            pjTopText.style.fontSize = `${mid}px`;
+            if (pjTopBox.scrollHeight <= pjTopBox.clientHeight + 1) low = mid; else high = mid;
+        }
+        pjTopText.style.fontSize = `${Math.floor(low)}px`;
+    };
+
+    let lastSignature = '';
+    const render = (list) => {
+        const open = list.filter((q) => q && !q.hidden && q.status !== 'speaker_answered');
+        open.sort((a, b) => ((b.question_upvotes || 0) - (a.question_upvotes || 0))
+            || ((parseApiDate(b.created_at) || 0) - (parseApiDate(a.created_at) || 0)));
+        const top = open[0];
+        const next = open.slice(1, 5);
+        const signature = JSON.stringify([
+            top ? [top.id, top.question_text, top.author_name, top.question_upvotes] : null,
+            next.map((q) => [q.id, q.question_text, q.question_upvotes])
+        ]);
+        if (signature === lastSignature) return;
+        lastSignature = signature;
+
+        if (!top) {
+            pjEmpty.textContent = 'Questions will appear here.\nScan the code to ask one.';
+            pjEmpty.hidden = false;
+            pjTop.hidden = true;
+            pjNextWrap.hidden = true;
+            return;
+        }
+        pjEmpty.hidden = true;
+        pjTop.hidden = false;
+        pjTopText.textContent = top.question_text || '';
+        fillVotes(pjTopVotes, top.question_upvotes);
+        pjTopAuthor.textContent = authorLine(top.author_name);
+
+        pjNextWrap.hidden = next.length === 0;
+        pjNext.replaceChildren(...next.map((q) => {
+            const item = document.createElement('li');
+            const votes = document.createElement('span');
+            votes.className = 'pj-votes';
+            fillVotes(votes, q.question_upvotes);
+            const text = document.createElement('p');
+            text.className = 'pj-next-text';
+            text.textContent = q.question_text || '';
+            item.append(votes, text);
+            return item;
+        }));
+        fitTopQuestion();
+    };
+
+    let timerId = null;
+    let stopped = false;
+    const refresh = async () => {
+        if (stopped) return;
+        try {
+            const response = await fetch(`${WORKER_URL}/api/${encodeURIComponent(projectorSession)}/questions`);
+            if (response.status === 404) {
+                stopped = true;
+                if (timerId) clearInterval(timerId);
+                pjTop.hidden = true;
+                pjNextWrap.hidden = true;
+                pjEmpty.textContent = "We couldn't find this session. Check the link.";
+                pjEmpty.hidden = false;
+                return;
+            }
+            if (!response.ok) return;
+            const data = await response.json();
+            if (Array.isArray(data)) render(data);
+        } catch (error) {
+            console.warn('Projector refresh failed:', error);
+        }
+    };
+    const startTimer = () => {
+        if (timerId) clearInterval(timerId);
+        timerId = null;
+        if (!document.hidden && !stopped) timerId = setInterval(refresh, POLLING_INTERVAL_MS);
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (stopped) return;
+        if (document.hidden) {
+            if (timerId) clearInterval(timerId);
+            timerId = null;
+        } else {
+            refresh();
+            startTimer();
+        }
+    });
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(fitTopQuestion, 120);
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitTopQuestion).catch(() => {});
+
+    const root = document.documentElement;
+    if (document.fullscreenEnabled && root.requestFullscreen) {
+        fullscreenButton.addEventListener('click', () => {
+            root.requestFullscreen().catch((error) => console.warn('Full screen was refused:', error));
+        });
+        document.addEventListener('fullscreenchange', () => {
+            fullscreenButton.hidden = Boolean(document.fullscreenElement);
+        });
+    } else {
+        fullscreenButton.hidden = true;
+    }
+
+    refresh();
+    startTimer();
+}
+
 // --- INITIALIZATION ---
 function initializeApp() {
     const params = new URLSearchParams(window.location.search);
     const initialSession = params.get('session') || '';
     const urlSpeakerKey = params.get('speaker_key') || '';
+
+    if (initialSession && params.get('view') === 'projector') {
+        startProjector(initialSession, urlSpeakerKey);
+        return;
+    }
 
     if (!initialSession) {
         document.getElementById('session-id-display').textContent = '—';
