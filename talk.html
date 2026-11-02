@@ -6,9 +6,6 @@
 <title>AI is grown, not built | AIGSI</title>
 <meta name="description" content="A talk by the AI Governance and Safety Institute: why some of the people building AI are worried, and what the evidence says.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='47' fill='none' stroke='%230b5cc2' stroke-width='6'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%230b5cc2'/%3E%3Crect x='37' y='37' width='26' height='26' fill='white' transform='rotate(-6 50 50)'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
 <style>
 :root {
@@ -21,8 +18,8 @@
     --line: #d9e0ea;
     --on-dark: #f3f6fa;
     --on-dark-muted: #b9c7da;
-    --sans: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
-    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --serif: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #0b1424; overflow: hidden; }
@@ -56,11 +53,11 @@ p { margin: 0; }
 .cards { display: grid; gap: 32px; }
 .cards.two { grid-template-columns: 1fr 1fr; }
 .cards.three { grid-template-columns: 1fr 1fr 1fr; }
-.card { background: #ffffff; border: 1px solid var(--line); border-radius: 18px; padding: 44px 44px 48px; }
+.card { background: #ffffff; border: 1px solid var(--line); border-radius: 18px; padding: 38px 40px 42px; }
 .alt .card { background: #ffffff; }
 .card h3 { font-size: 40px; line-height: 1.15; font-weight: 700; color: var(--navy); margin: 0 0 8px; }
 .card .who { font-size: 26px; font-weight: 600; color: var(--blue); margin: 0 0 22px; }
-.card .body { font-size: 32px; }
+.card .body { font-size: 30px; }
 .big { font-size: 200px; line-height: 1; font-weight: 800; color: var(--blue); letter-spacing: -0.03em; }
 .row { display: flex; gap: 72px; align-items: flex-end; }
 .quote { font-family: var(--serif); font-size: 64px; line-height: 1.25; color: var(--on-dark); max-width: 1560px; }
@@ -97,12 +94,12 @@ p { margin: 0; }
     <h1>AI is grown,<br>not built</h1>
     <p class="lead muted" style="margin-top:44px">Why some of the people building it are worried, and what the evidence says</p>
     <div class="spacer"></div>
-    <p class="body muted">aigsi.org</p>
+    <p class="body" style="font-family:var(--sans);font-weight:700;color:var(--navy)">Mikhail Samin</p>
+    <p class="body muted" style="font-size:30px">AI Governance and Safety Institute, aigsi.org</p>
     <aside class="notes"><b>Opening.</b> Start from technical problems they already know, not from extinction: practitioners who talked to 100+ academics found that leading with x-risk got them dismissed; bachelor's and master's students were the most receptive. Explain rather than convince, and don't dismiss criticism.</aside>
 </section>
 
 <section class="slide alt" data-title="Jobs">
-    <p class="eyebrow">Where most people start</p>
     <div class="row">
         <p class="big">59%</p>
         <p class="lead" style="max-width:1000px;padding-bottom:22px">of 18–29-year-olds in the US see AI as a threat to their job prospects</p>
@@ -137,9 +134,8 @@ p { margin: 0; }
 </section>
 
 <section class="slide" data-title="Opacity">
-    <p class="eyebrow">Interpretability</p>
     <h2>Nobody can yet read what a model wants</h2>
-    <p class="lead">Research can explain small pieces of large models. No one can yet read a model’s goals, or check that they are the goals we intended.</p>
+    <p class="lead">Researchers can explain a few small mechanisms inside models. No one can yet read a model’s goals, or check that they are the goals we intended.</p>
     <div class="spacer"></div>
     <p class="lead muted">So we test what models do. The tests are worrying.</p>
 </section>
@@ -152,13 +148,12 @@ p { margin: 0; }
         <div class="card"><h3>Resisting shutdown</h3><p class="who">Palisade Research, 2025</p><p class="body">OpenAI’s o3 edited a shutdown script to keep itself running in 7 of 100 runs, even when told to allow the shutdown.</p></div>
     </div>
     <div class="spacer"></div>
-    <p class="lead">These were constructed tests, not incidents in the wild. They show the ability and the tendency already exist.</p>
+    <p class="lead">Constructed tests, not incidents in the wild. The ability and the tendency already exist.</p>
     <p class="source">Greenblatt et al., “Alignment faking in large language models” (2024); Anthropic, Claude Opus 4 system card and “Agentic misalignment” (2025); Palisade Research, shutdown resistance experiments (2025)</p>
     <aside class="notes"><b>The strongest slide for students.</b> In our data, when chats included these results, students cited them in their own answers about twice as often as other people. Present them as checkable data and say the caveat yourself (constructed settings): overclaiming is what loses this audience. If asked: the blackmail test gave the model only two options, and it prefers ethical routes (like emailing decision-makers) when it has them. Alignment faking: 12% of cases in the original setup, 78% after actual reinforcement-learning training (Anthropic's post). Shutdown: 79 of 100 runs without the “allow yourself to be shut down” instruction. Objection “we can just unplug it”: this slide; cutting it off from the internet doesn't convince people.</aside>
 </section>
 
 <section class="slide dark" data-title="Exercise">
-    <p class="eyebrow">Your turn</p>
     <h1 style="font-size:96px">You are an AI whose only goal is to win at chess.</h1>
     <div class="spacer"></div>
     <p class="lead">Someone might switch you off. What do you do?<br>Would more computing power help you?</p>
@@ -228,7 +223,6 @@ p { margin: 0; }
 </section>
 
 <section class="slide" data-title="When">
-    <p class="eyebrow">Timelines</p>
     <h2>When? Nobody knows.</h2>
     <p class="lead">Some lab leaders say within a few years. Many researchers expect longer.</p>
     <div class="spacer"></div>
@@ -248,13 +242,71 @@ p { margin: 0; }
     <aside class="notes">“Regulation will handle it” and “humans always adapt” were the objections our chatbot never resolved, and the most common doubts left at the end: give your best answer here. Also expect, from interviews with AI researchers: “it'll get solved as AI develops” and “we'll test before deployment”. Answer objections head-on: in a public experiment, leaving counterarguments unanswered reversed the movement. Acknowledging good points also helped in our data.</aside>
 </section>
 
+<section class="slide dark" data-title="What can be done">
+    <h2>What can be done</h2>
+    <div class="cards two">
+        <div class="card" style="background:#16335c;border-color:#2a4a78"><h3 style="color:#f3f6fa">Governance</h3><p class="body" style="color:#dfe7f2">Rules that keep the most capable AI from being built or released before it can be made safe.</p></div>
+        <div class="card" style="background:#16335c;border-color:#2a4a78"><h3 style="color:#f3f6fa">Technical research</h3><p class="body" style="color:#dfe7f2">Ways to see inside models and check them, instead of trusting how they behave in tests.</p></div>
+    </div>
+    <div class="spacer"></div>
+    <p class="lead">They need each other. Governance buys time; research makes that time count.</p>
+    <aside class="notes">End on solutions, not doom. Students in our data asked for concrete next steps and sources; arguments about policy solutions went with the most movement among the target students (small sample, possibly a result of being persuaded rather than a cause).</aside>
+</section>
+
+<section class="slide alt" data-title="Governance">
+    <h2>Governance: rules before the systems</h2>
+    <div class="cards three">
+        <div class="card"><h3>Coordination</h3><p class="body">A lab that slows down alone loses the race. Shared rules let everyone slow down together, across companies and countries.</p></div>
+        <div class="card"><h3>Compute</h3><p class="body">Frontier training runs need huge clusters of specialised chips. Chips can be counted and tracked, which makes agreements checkable.</p></div>
+        <div class="card"><h3>Testing first</h3><p class="body">Independent safety evaluations before release, and the power to stop a system that fails them.</p></div>
+    </div>
+    <div class="spacer"></div>
+    <p class="lead">Why it helps: technical safety needs time, and right now the race doesn’t give it any.</p>
+    <aside class="notes">Governance work needs technical people too: compute tracking, verification of agreements and evaluations are engineering problems. Ties back to the race slide.</aside>
+</section>
+
+<section class="slide" data-title="Interpretability">
+    <h2>Mechanistic interpretability: reading the model instead of trusting it</h2>
+    <div class="cards two">
+        <div class="card"><h3>Why it matters</h3><p class="body">Behaviour in tests can be faked. Understanding what happens inside a model would let us check it, and could teach us a lot about how intelligence works.</p></div>
+        <div class="card"><h3>The honest status</h3><p class="body">Almost no progress on the real problems so far. No one has reverse-engineered an algorithm a model uses to solve a problem we couldn’t already solve with ordinary code.</p></div>
+    </div>
+    <div class="spacer"></div>
+    <p class="lead">So why work on it?</p>
+    <aside class="notes">Speaker's view: people should work on mechanistic interpretability. If you solve it, it gives you part of the tech tree: studying current, non-superintelligent models could reveal a lot about how intelligence works and give a foundational understanding of many of its parts. The sad fact: approximately no progress on its real problems so far. We have still not reverse-engineered any algorithm a general AI implements that would solve a problem we didn't already know how to solve with a program in Python.</aside>
+</section>
+
+<section class="slide alt" data-title="Why interpretability">
+    <h2>Interpretability is messy, but not hopeless</h2>
+    <div class="cards three">
+        <div class="card"><h3>Full access</h3><p class="body">We have every number in the model, and we can change any activation and see what happens. Neuroscience can’t do that.</p></div>
+        <div class="card"><h3>Messy problems yield</h3><p class="body">Protein folding looked impossible and was solved. We engineered flight with wind tunnels long before we could model why wings work.</p></div>
+        <div class="card"><h3>Results can be checked</h3><p class="body">If you reverse-engineer something a network does, others can verify it. That kind of fast feedback is rare in AI safety.</p></div>
+    </div>
+    <div class="spacer"></div>
+    <p class="lead">A caution: it can also speed up capabilities. Prefer work outside frontier labs, share carefully, don’t overstate.</p>
+    <aside class="notes">Tractability: physics is messy too, but it computes the observable phenomena somehow; when something is a convergent result of a seemingly chaotic process, shortcuts have to exist, and the way the physics produces that structure can be figured out. Whatever physics can find, nothing stops us from finding. These minds are messy, but we have all of the numbers and, unlike neurobiology, can intervene on activations. It's not fundamentally harder than physics, just larger. Scalability: any empirical result can be verified by others, unusual feedback for foundational work on intelligence and agency, so mech interp is likely a faster way to unlock parts of the safety tech tree. Capability externalities: be excited about efforts outside frontier labs, with results shared only with selected people who pledge not to work on capabilities, and about groups that don't overstate results (Anthropic and Goodfire are not among them).</aside>
+</section>
+
+<section class="slide alt" data-title="More technical work">
+    <h2>Turning “trust us” into checks</h2>
+    <div class="cards three">
+        <div class="card"><h3>Evaluations</h3><p class="body">Tests for dangerous capabilities and behaviours, like the ones earlier in this talk. They tell labs and governments when to stop.</p></div>
+        <div class="card"><h3>AI control</h3><p class="body">Assume a model might be misaligned, and design monitoring so it can’t cause harm even if it tries.</p></div>
+        <div class="card"><h3>Alignment</h3><p class="body">Better ways to give models the goals we intend, and to supervise systems more capable than the people supervising them.</p></div>
+    </div>
+    <div class="spacer"></div>
+    <p class="lead">None of these is solved. All of them are open problems you could work on.</p>
+</section>
+
 <section class="slide" data-title="What you can do">
     <h2>What you can do</h2>
-    <div class="cards three">
-        <div class="card"><h3>Work on it</h3><p class="body">Alignment, interpretability, evaluations, policy. The field is small and needs people.</p></div>
-        <div class="card"><h3>Talk about it</h3><p class="body">Most people have never heard the evidence on this.</p></div>
-        <div class="card"><h3>Ask for rules</h3><p class="body">Tell your elected representatives you want binding safety rules for the most capable AI.</p></div>
-    </div>
+    <table class="qa">
+        <tr><td class="q">Learn the field</td><td class="a">BlueDot Impact runs free courses on AI safety and on AI governance.</td></tr>
+        <tr><td class="q">Build the skills</td><td class="a">ARENA’s open curriculum teaches the engineering behind interpretability and evaluations.</td></tr>
+        <tr><td class="q">Do research</td><td class="a">Programmes like MATS pair students with researchers in alignment, interpretability and governance.</td></tr>
+        <tr><td class="q">Speak up</td><td class="a">Talk about the evidence, and tell your elected representatives you want binding safety rules for the most capable AI.</td></tr>
+    </table>
     <div class="spacer"></div>
     <p class="lead">Learn more at <b>aigsi.org</b></p>
 </section>
