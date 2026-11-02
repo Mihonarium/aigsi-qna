@@ -3,890 +3,606 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Q&A Session</title>
+<title>AIGSI Live Q&amp;A</title>
+<meta name="description" content="AIGSI's live Q&amp;A for talks: ask the speaker a question, upvote the ones you want answered, and get a first answer from an AI.">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AIGSI">
+<meta property="og:title" content="AIGSI Live Q&amp;A">
+<meta property="og:description" content="Ask the speaker a question, upvote the ones you want answered, and get a first answer from an AI.">
+<meta property="og:url" content="https://qna.aigsi.org/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='49' fill='white'/%3E%3Ccircle cx='50' cy='50' r='41' fill='none' stroke='%230066cc' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%230066cc'/%3E%3Crect x='40' y='40' width='20' height='20' fill='white'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
 <style>
 :root {
---bg-color: #0D1117;
---card-color: #161B22;
---border-color: #30363D;
---text-primary: #C9D1D9;
---text-secondary: #8B949E;
---accent-gradient: linear-gradient(45deg, #A855F7, #D946EF);
---accent-hover: linear-gradient(45deg, #9333EA, #C026D3);
---green: #238636;
---red: #DA3633;
---blue: #1F6FEB;
---orange: #FB8500;
---font-family: 'Inter', sans-serif;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --muted: #4f5660;
+    --border: #dde1e6;
+    --border-strong: #b9c0c9;
+    --primary: #0052a3;
+    --primary-hover: #003f7d;
+    --accent: #0066cc;
+    --navy: #001f3f;
+    --ai-bg: #f3f6fa;
+    --danger: #b00020;
+    --success: #1b6b35;
+    --radius: 10px;
+    --font-sans: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; }
-
-html {
-scroll-behavior: smooth;
-}
-
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-background-color: var(--bg-color);
-color: var(--text-primary);
-font-family: var(--font-family);
-line-height: 1.6;
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
 }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
 
-.app-container {
-display: grid;
-grid-template-columns: 1fr;
-gap: 2rem;
-max-width: 1200px;
-margin: 0 auto;
-padding: clamp(1rem, 5vw, 3rem);
+/* Buttons */
+.btn-primary, .submit-btn, #create-session-btn, #manual-session-join-btn, .modal-confirm {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
 }
+.btn-primary:hover, .submit-btn:hover, #create-session-btn:hover, #manual-session-join-btn:hover, .modal-confirm:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+.btn-secondary, .qr-button, .speaker-indicator button, .link-field button, .modal-actions button:not(.modal-confirm), .modal-copy-field button, .close-qr {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-secondary:hover, .qr-button:hover, .speaker-indicator button:hover, .link-field button:hover, .modal-actions button:not(.modal-confirm):hover, .modal-copy-field button:hover, .close-qr:hover {
+    border-color: var(--primary);
+}
+button:disabled { opacity: 0.6; cursor: not-allowed; }
 
+input[type="text"], textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 16px;
+}
+input[type="text"]:focus, textarea:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 0; }
+textarea { resize: vertical; line-height: 1.45; }
+
+/* Site bar */
+.site-bar { background: var(--surface); border-bottom: 1px solid var(--border); }
+.site-bar-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 16px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    color: var(--navy);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: 0.04em;
+}
+.brand svg { width: 30px; height: 30px; flex: none; }
+.brand-divider { width: 1px; height: 22px; background: var(--border-strong); }
+.brand-product { color: var(--muted); font-weight: 500; }
+
+/* Layout */
+.app-container { max-width: 1120px; margin: 0 auto; padding: 20px 16px 72px; }
+.app-header { margin-bottom: 20px; }
+.side-panel { margin-bottom: 24px; }
 @media (min-width: 992px) {
-.app-container {
-    grid-template-columns: 2fr 1fr;
-    grid-template-areas: "main aside";
-}
-.qa-list-container { grid-area: main; }
-.side-panel { grid-area: aside; position: sticky; top: 2rem; align-self: start; }
-}
-
-body.session-unavailable .app-container {
-grid-template-columns: 1fr;
-}
-
-body.session-unavailable .qa-list-container,
-body.session-unavailable .side-panel,
-body.session-unavailable .mobile-ask-btn,
-body.session-unavailable .speaker-indicator {
-display: none;
+    .app-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        grid-template-areas: "header header" "list side";
+        column-gap: 32px;
+        padding-top: 32px;
+    }
+    .app-header { grid-area: header; margin-bottom: 24px; }
+    .qa-list-container { grid-area: list; min-width: 0; }
+    .side-panel { grid-area: side; position: sticky; top: 24px; align-self: start; margin-bottom: 0; }
 }
 
-body.session-unavailable .session-controls {
-max-width: 480px;
-margin-left: auto;
-margin-right: auto;
-}
-
-body.session-active .session-controls {
-display: none;
-}
-
-body.session-unavailable .session-info {
-justify-content: center;
-}
-
-body.session-unavailable .session-info-divider {
-display: none;
-}
-
-.app-header {
-grid-column: 1 / -1;
-text-align: center;
-margin-bottom: 1rem;
-}
+/* Header */
 .app-header h1 {
-font-size: clamp(2rem, 6vw, 3rem);
-font-weight: 800;
+    margin: 0 0 6px;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--navy);
 }
-.app-header p {
-color: var(--text-secondary);
-font-size: clamp(0.9rem, 2vw, 1.1rem);
-max-width: 60ch;
-margin: 0.5rem auto 0;
+.intro { margin: 0; color: var(--muted); max-width: 62ch; }
+.intro-landing { font-family: var(--font-serif); font-size: 1.1875rem; line-height: 1.55; color: var(--text); margin-bottom: 24px; }
+body.session-active .intro-landing, body.session-unavailable .intro-session { display: none; }
+@media (max-width: 599px) {
+    body.session-active .intro-session { display: none; }
+    body.session-active .app-header h1 { font-size: 1.375rem; }
 }
 
-.session-info {
-background: var(--card-color);
-border: 1px solid var(--border-color);
-padding: 0.5rem 1rem;
-border-radius: 99px;
-font-size: 0.9rem;
-color: var(--text-secondary);
-display: inline-flex;
-align-items: center;
-gap: 0.75rem;
-margin-top: 1.5rem;
-}
-.session-info span { font-weight: 600; color: var(--text-primary); }
+.session-info { display: none; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 12px; }
+body.session-active .session-info { display: flex; }
+.session-id-text { color: var(--muted); }
+.session-id-text strong { color: var(--text); font-weight: 700; letter-spacing: 0.02em; }
 
-.session-info .session-info-divider { color: var(--border-color); }
+.speaker-indicator {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    background: var(--surface);
+}
+body.speaker-view .speaker-indicator { display: flex; }
+.speaker-indicator-text { flex: 1 1 260px; margin: 0; color: var(--muted); font-size: 0.9375rem; }
+.speaker-indicator-text strong { color: var(--text); }
 
 .session-warning {
-background: rgba(218, 54, 51, 0.12);
-border: 1px solid rgba(218, 54, 51, 0.5);
-color: #ffaba8;
-padding: 0.75rem 1rem;
-border-radius: 12px;
-margin-top: 1rem;
-display: none;
-font-size: 0.9rem;
-line-height: 1.5;
-}
-.session-warning a { color: #ffaba8; text-decoration: underline; }
-
-
-.toast-container {
-position: fixed;
-top: 1.25rem;
-right: 1.25rem;
-display: flex;
-flex-direction: column;
-gap: 0.75rem;
-z-index: 3000;
-max-width: min(320px, calc(100vw - 2.5rem));
-}
-.toast {
-background: rgba(22, 27, 34, 0.94);
-border: 1px solid rgba(85, 85, 85, 0.4);
-border-radius: 10px;
-color: #ffffff;
-padding: 0.85rem 1rem;
-box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
-display: flex;
-align-items: flex-start;
-gap: 0.75rem;
-transform: translateY(-10px);
-opacity: 0;
-transition: opacity 0.2s ease, transform 0.2s ease;
-font-size: 0.9rem;
-}
-.toast.show {
-opacity: 1;
-transform: translateY(0);
-}
-.toast-info { border-color: rgba(31, 111, 235, 0.5); }
-.toast-success { border-color: rgba(35, 134, 54, 0.5); }
-.toast-warning { border-color: rgba(251, 133, 0, 0.5); }
-.toast-error { border-color: rgba(218, 54, 51, 0.6); }
-.toast-close {
-background: none;
-border: none;
-color: inherit;
-margin-left: auto;
-font-size: 1.1rem;
-line-height: 1;
-cursor: pointer;
-padding: 0;
-opacity: 0.6;
-transition: opacity 0.2s ease;
-}
-.toast-close:hover { opacity: 1; }
-
-.modal-overlay {
-position: fixed;
-top: 0;
-right: 0;
-bottom: 0;
-left: 0;
-background: rgba(13, 17, 23, 0.85);
-display: flex;
-align-items: center;
-justify-content: center;
-z-index: 3500;
-padding: 1.5rem;
-}
-.modal-dialog {
-background: var(--card-color);
-border: 1px solid var(--border-color);
-border-radius: 14px;
-padding: 1.5rem;
-width: min(420px, 100%);
-box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
-display: flex;
-flex-direction: column;
-gap: 1rem;
-}
-.modal-dialog p {
-margin: 0;
-font-size: 0.95rem;
-color: var(--text-primary);
-}
-.modal-actions {
-display: flex;
-justify-content: flex-end;
-gap: 0.75rem;
-}
-.modal-actions button {
-background: rgba(255, 255, 255, 0.08);
-border: 1px solid rgba(255, 255, 255, 0.12);
-color: var(--text-primary);
-padding: 0.45rem 1rem;
-border-radius: 8px;
-font-weight: 600;
-cursor: pointer;
-transition: background 0.2s ease, transform 0.2s ease;
-}
-.modal-actions button:hover {
-background: rgba(255, 255, 255, 0.14);
-transform: translateY(-1px);
-}
-.modal-actions .modal-confirm {
-background: var(--accent-gradient);
-border: none;
-color: #ffffff;
-}
-.modal-actions .modal-confirm:hover {
-transform: translateY(-1px);
-box-shadow: 0 12px 24px rgba(168, 85, 247, 0.3);
-}
-.modal-copy-field {
-display: flex;
-gap: 0.5rem;
-align-items: center;
-background: rgba(13, 17, 23, 0.85);
-border: 1px solid var(--border-color);
-border-radius: 8px;
-padding: 0.5rem;
-}
-.modal-copy-field input {
-flex: 1;
-background: transparent;
-border: none;
-color: var(--text-primary);
-font-size: 0.9rem;
-outline: none;
-}
-.modal-copy-field button {
-background: rgba(255, 255, 255, 0.08);
-border: 1px solid rgba(255, 255, 255, 0.15);
-color: var(--text-primary);
-border-radius: 6px;
-padding: 0.35rem 0.75rem;
-cursor: pointer;
-font-weight: 600;
-transition: background 0.2s ease;
-}
-.modal-copy-field button:hover {
-background: rgba(255, 255, 255, 0.14);
+    display: none;
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--danger);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
 }
 
+/* Landing: join and create */
+.session-controls { display: grid; gap: 16px; }
+@media (min-width: 768px) { .session-controls { grid-template-columns: 1fr 1fr; } }
+.session-block {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+.session-block h2 { margin: 0 0 6px; font-size: 1.125rem; color: var(--navy); }
+.session-block p { margin: 0 0 14px; color: var(--muted); font-size: 0.9375rem; }
+.session-block label { display: block; font-weight: 600; font-size: 0.9375rem; margin-bottom: 6px; }
+.manual-session-row { display: flex; gap: 8px; }
+.manual-session-row input { flex: 1; min-width: 0; }
 
-.session-controls {
-background: rgba(22, 27, 34, 0.8);
-border: 1px solid var(--border-color);
-border-radius: 12px;
-padding: 1rem;
-margin-top: 1rem;
-display: flex;
-flex-direction: column;
-gap: 1rem;
-text-align: left;
-max-width: 480px;
-margin-left: auto;
-margin-right: auto;
+/* Session created box */
+.session-created {
+    display: none;
+    margin-top: 16px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--surface);
 }
-.session-controls h2 {
-font-size: 1.1rem;
-margin-bottom: 0.25rem;
-text-align: center;
-}
-.session-controls p {
-font-size: 0.85rem;
-color: var(--text-secondary);
-text-align: center;
-}
-.session-tools-label {
-display: block;
-text-align: center;
-font-weight: 600;
-color: var(--text-secondary);
-}
-body.session-active .session-controls-title,
-body.session-active .session-controls-description {
-display: none;
-}
-.session-controls button {
-background: var(--accent-gradient);
-color: white;
-padding: 0.6rem 1rem;
-border: none;
-border-radius: 8px;
-font-weight: 600;
-cursor: pointer;
-transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.session-controls button:hover:not(:disabled) {
-transform: translateY(-1px);
-box-shadow: 0 8px 18px rgba(168, 85, 247, 0.35);
-}
-.session-controls button:disabled {
-cursor: wait;
-opacity: 0.7;
-}
-.session-links {
-display: none;
-flex-direction: column;
-gap: 0.75rem;
-border-top: 1px solid rgba(48, 54, 61, 0.7);
-padding-top: 0.75rem;
-}
-.session-link-row {
-display: flex;
-gap: 0.5rem;
-align-items: center;
-}
-.session-link-row label {
-min-width: 90px;
-font-size: 0.85rem;
-color: var(--text-secondary);
-}
-.session-link-row input {
-flex: 1;
-background: rgba(13, 17, 23, 0.8);
-border: 1px solid var(--border-color);
-border-radius: 6px;
-padding: 0.5rem;
-color: var(--text-primary);
-font-size: 0.85rem;
-}
-.session-link-row button {
-background: rgba(168, 85, 247, 0.2);
-color: #d8b4fe;
-border-radius: 6px;
-border: 1px solid rgba(168, 85, 247, 0.6);
-padding: 0.45rem 0.75rem;
-font-size: 0.8rem;
-}
-.session-link-row button:hover:not(:disabled) {
-transform: none;
-box-shadow: none;
-background: rgba(168, 85, 247, 0.3);
-}
-.manual-session {
-display: flex;
-flex-direction: column;
-gap: 0.5rem;
-}
-.manual-session label {
-font-size: 0.85rem;
-color: var(--text-secondary);
-}
-.manual-session-row {
-display: flex;
-gap: 0.5rem;
-}
-.manual-session-row input {
-flex: 1;
-background: rgba(13, 17, 23, 0.8);
-border: 1px solid var(--border-color);
-border-radius: 6px;
-padding: 0.5rem;
-color: var(--text-primary);
-font-size: 0.9rem;
-}
-.manual-session-row button {
-background: var(--blue);
-color: white;
-border-radius: 6px;
-}
-.manual-session-row button:hover:not(:disabled) {
-transform: none;
-box-shadow: none;
-}
+.session-created h2 { margin: 0 0 4px; font-size: 1.125rem; color: var(--navy); }
+.session-created > p { margin: 0 0 14px; color: var(--muted); }
+.session-link-row { margin-bottom: 12px; }
+.session-link-row label { display: block; font-weight: 600; font-size: 0.9375rem; margin-bottom: 4px; }
+.link-field { display: flex; gap: 8px; }
+.link-field input { flex: 1; min-width: 0; font-size: 0.9375rem; color: var(--muted); }
+.session-created .session-created-note { margin: 4px 0 14px; color: var(--text); }
 
-
-/* Speaker Mode Indicator */
-.speaker-indicator {
-background: var(--green);
-color: white;
-padding: 0.5rem 1rem;
-border-radius: 99px;
-font-size: 0.9rem;
-font-weight: 600;
-display: none;
-align-items: center;
-gap: 0.5rem;
-margin-top: 0.5rem;
-}
-.speaker-indicator > button {
-background: rgba(255, 255, 255, 0.2);
-border: 1px solid rgba(255, 255, 255, 0.3);
-color: white;
-padding: 0.2rem 0.6rem;
-border-radius: 99px;
-font-size: 0.8rem;
-cursor: pointer;
-transition: background 0.2s;
-margin: 0 0 0 0.25rem;
-width: auto;
-text-transform: none;
-letter-spacing: normal;
-font-weight: 500;
-}
-.speaker-indicator > button:hover {
-background: rgba(255, 255, 255, 0.3);
-transform: none;
-box-shadow: none;
-}
-body.speaker-view .speaker-indicator {
-display: inline-flex;
-}
-
-/* Mobile Ask Question Button */
-.mobile-ask-btn {
-display: none;
-background: var(--accent-gradient);
-color: white;
-padding: 0.75rem 1.5rem;
-border: none;
-border-radius: 99px;
-font-size: 1rem;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.2s ease-out;
-margin-top: 1rem;
-text-decoration: none;
-display: inline-block;
-box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
-}
-.mobile-ask-btn:hover { 
-transform: translateY(-2px); 
-box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); 
-}
-@media (max-width: 991px) {
-.mobile-ask-btn { display: inline-block; }
-}
-
-/* Form styling */
+/* Ask form */
 .form-container {
-background-color: var(--card-color);
-border: 1px solid var(--border-color);
-border-radius: 12px;
-padding: 1.5rem;
-position: relative;
-overflow: hidden;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
 }
-.form-container h2 {
-font-size: 1.25rem;
-font-weight: 700;
-margin-bottom: 1rem;
-}
-.form-group { margin-bottom: 1rem; }
-.form-group label {
-display: block;
-font-size: 0.9rem;
-font-weight: 500;
-color: var(--text-secondary);
-margin-bottom: 0.5rem;
-}
-.form-group input, .form-group textarea {
-width: 100%;
-background-color: var(--bg-color);
-border: 1px solid var(--border-color);
-color: var(--text-primary);
-padding: 0.75rem;
-border-radius: 8px;
-font-size: 1rem;
-font-family: inherit;
-transition: border-color 0.2s, box-shadow 0.2s;
-}
-.form-group textarea { resize: vertical; min-height: 80px; }
-.form-group input:focus, .form-group textarea:focus {
-outline: none;
-border-color: var(--blue);
-box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
-}
-.form-container.disabled form {
-pointer-events: none;
-opacity: 0.35;
-filter: saturate(0.6);
-}
-.form-container.disabled::after {
-content: 'Create or join a session to ask questions';
-position: absolute;
-top: 1.5rem;
-left: 1.5rem;
-right: 1.5rem;
-bottom: 1.5rem;
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-background: rgba(13, 17, 23, 0.92);
-border: 1px dashed rgba(201, 209, 217, 0.3);
-border-radius: 10px;
-font-size: 0.95rem;
-color: var(--text-secondary);
-padding: 1rem;
-}
-.submit-btn {
-width: 100%;
-background: var(--accent-gradient);
-color: white;
-padding: 0.8rem 1.5rem;
-border: none;
-border-radius: 8px;
-font-size: 1rem;
-font-weight: 700;
-cursor: pointer;
-transition: all 0.2s ease-out;
-}
-.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2); }
-.submit-btn:disabled { background: var(--border-color); color: var(--text-secondary); cursor: not-allowed; transform: none; box-shadow: none; }
+.form-container h2 { margin: 0 0 12px; font-size: 1.125rem; color: var(--navy); }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-weight: 600; font-size: 0.9375rem; margin-bottom: 4px; }
+.optional { font-weight: 400; color: var(--muted); }
+.submit-btn { width: 100%; }
+.form-container.disabled { opacity: 0.65; }
+.form-error, .form-status { margin: 10px 0 0; font-size: 0.9375rem; }
+.form-error { color: var(--danger); font-weight: 600; }
+.form-status { color: var(--success); font-weight: 600; }
 
-/* Q&A List */
-.qa-list { display: flex; flex-direction: column; gap: 1rem; }
+/* Question list */
+body.session-unavailable .qa-list-container, body.session-unavailable .side-panel { display: none; }
+.qa-list { display: flex; flex-direction: column; gap: 12px; }
+.empty-state, .loading-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
 
 .qa-card {
-background-color: var(--card-color);
-border: 1px solid var(--border-color);
-border-radius: 12px;
-padding: 1.5rem;
-display: flex;
-gap: 1.25rem;
-transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.4s;
-position: relative;
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition: opacity 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    scroll-margin: 96px;
 }
-.qa-card.new-card {
-opacity: 0;
-transform: translateY(20px);
-}
-.qa-card.answered-by-speaker { opacity: 0.6; }
-.qa-card.hidden {
-opacity: 0.5;
-background-color: rgba(139, 148, 158, 0.1);
-}
+.qa-card.new-card { opacity: 0; transform: translateY(6px); }
+.qa-card.just-asked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.qa-card.answered-by-speaker { background: #f6f7f8; }
+.qa-card.answered-by-speaker .question-text { color: var(--muted); }
+.qa-card.hidden { border-style: dashed; background: #f6f7f8; }
 
-.vote-section { flex-shrink: 0; text-align: center; }
+.vote-section { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: none; width: 48px; }
 .vote-btn {
-background: none;
-border: 1px solid var(--border-color);
-color: var(--text-secondary);
-width: 40px; height: 30px;
-border-radius: 6px;
-font-size: 1.1rem;
-cursor: pointer;
-transition: all 0.2s;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--primary);
+    cursor: pointer;
 }
-.vote-btn:hover:not(.voted) { background-color: #ffffff1a; color: var(--text-primary); }
-.vote-btn.voted {
-background-color: var(--blue);
-color: white;
-border-color: var(--blue);
-cursor: not-allowed;
-}
-.vote-count {
-font-size: 1.25rem;
-font-weight: 700;
-display: block;
-margin: 0.25rem 0;
-transition: transform 0.2s;
-}
+.vote-btn:hover { border-color: var(--primary); }
+.vote-btn.voted { background: var(--primary); border-color: var(--primary); color: #fff; cursor: default; }
+.vote-btn svg { pointer-events: none; }
+.vote-count { font-weight: 700; font-variant-numeric: tabular-nums; }
 
-.content-section { flex-grow: 1; min-width: 0; }
-
-.question-header {
-display: flex;
-flex-wrap: wrap;
-gap: 0.5rem 1rem;
-align-items: center;
-margin-bottom: 0.5rem;
+.content-section { flex: 1; min-width: 0; }
+.question-text {
+    margin: 0 0 6px;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
 }
-.author-name { font-weight: 600; color: var(--text-primary); }
-.timestamp { font-size: 0.85rem; color: var(--text-secondary); }
-.status-badge {
-font-size: 0.75rem;
-font-weight: 600;
-padding: 0.2rem 0.6rem;
-border-radius: 99px;
-text-transform: uppercase;
-}
-.status-badge.new, .status-badge.ai_answering { background-color: #8B949E20; color: #8B949E; }
-.status-badge.ai_answering { animation: pulse 1.5s infinite; }
-.status-badge.ai_answered { background-color: #A855F720; color: #C084FC; }
-.status-badge.speaker_answered { background-color: #23863620; color: #3FB950; }
-.status-badge.hidden { background-color: #DA363320; color: #F85149; }
-@keyframes pulse { 50% { opacity: 0.6; } }
-
-.question-text { margin-bottom: 1.5rem; font-size: 1.1rem; word-wrap: break-word; }
+.question-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font-size: 0.875rem; color: var(--muted); }
+.author-name { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.status-badge { font-weight: 600; color: var(--success); }
+.status-badge:empty { display: none; }
+.status-badge.hidden { color: var(--danger); }
 
 .ai-answer-container {
-border-top: 1px solid var(--border-color);
-margin-top: 1rem;
-padding-top: 1rem;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    background: var(--ai-bg);
 }
-.ai-answer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.ai-title { font-weight: 600; font-size: 0.9rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.ai-title.marked-correct { color: var(--green); background: none; -webkit-text-fill-color: var(--green); }
-.ai-title.marked-correct::after { content: " ✓"; }
-.ai-vote-controls { display: flex; align-items: center; gap: 0.5rem; }
-.ai-vote-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s; }
-.ai-vote-btn:hover:not(.voted) { transform: scale(1.2); }
-.ai-vote-count { font-size: 0.9rem; color: var(--text-secondary); min-width: 15px; text-align: center; }
+.ai-answer-header { margin-bottom: 6px; }
+.ai-title { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary); }
+.ai-title.marked-correct { color: var(--success); }
+.ai-answer-text { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.6; overflow-wrap: anywhere; }
+.ai-answer-text > :first-child { margin-top: 0; }
+.ai-answer-text > :last-child { margin-bottom: 0; }
+.ai-answer-text p, .ai-answer-text ul, .ai-answer-text ol { margin: 0 0 0.6em; }
+.ai-answer-text ul, .ai-answer-text ol { padding-left: 1.3em; }
+.ai-answer-text h1, .ai-answer-text h2, .ai-answer-text h3, .ai-answer-text h4 { font-family: var(--font-sans); font-size: 1rem; margin: 0.8em 0 0.4em; }
+.ai-answer-text pre { overflow-x: auto; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; }
+.ai-answer-text code { font-size: 0.9em; }
+.ai-answer-text blockquote { margin: 0 0 0.6em; padding-left: 12px; border-left: 3px solid var(--border-strong); color: var(--muted); }
+.ai-answer-text table { border-collapse: collapse; display: block; overflow-x: auto; font-family: var(--font-sans); font-size: 0.875rem; }
+.ai-answer-text th, .ai-answer-text td { border: 1px solid var(--border); padding: 4px 8px; }
+.ai-status { margin: 0; font-family: var(--font-sans); font-size: 0.9375rem; color: var(--muted); }
+.writing-dots { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.writing-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); opacity: 0.35; animation: qaDot 1.4s ease-in-out infinite; }
+.writing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.writing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes qaDot { 0%, 80%, 100% { opacity: 0.35; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .writing-dots span { animation: none; } }
 
-.ai-answer-text { color: var(--text-secondary); font-size: 0.95rem; }
-.ai-answer-text a,
-.ai-answer-text a:visited { color: #ffffff; text-decoration: underline; }
-.ai-answer-text a:hover { color: #d8b4fe; }
-.ai-answer-text p:last-child { margin-bottom: 0; }
-.ai-answer-text code { background: #ffffff1a; padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
+.ai-vote-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.ai-vote-label { font-size: 0.875rem; color: var(--muted); margin-right: 4px; }
+.ai-vote-btn {
+    min-height: 44px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.ai-vote-btn:hover { border-color: var(--primary); }
+.ai-vote-btn.voted { border-color: var(--primary); background: var(--primary); color: #fff; cursor: default; }
+.ai-vote-count { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 1.5ch; margin-right: 6px; }
+.ai-answer-container.is-writing .ai-vote-controls,
+.ai-answer-container.is-failed .ai-vote-controls { display: none; }
+.ai-answer-container.is-failed { border-left-color: var(--border-strong); background: #f6f7f8; }
 
-.speaker-actions { margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.speaker-actions { display: none; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .speaker-btn {
-flex: 1;
-min-width: 140px;
-background-color: var(--green);
-color: white;
-font-weight: 600;
-font-size: 0.85rem;
-border: none;
-padding: 0.5rem 0.75rem;
-border-radius: 8px;
-cursor: pointer;
-transition: background-color 0.2s;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
 }
-.speaker-btn:hover { background-color: #2ea043; }
-.speaker-btn.danger { background-color: var(--red); }
-.speaker-btn.danger:hover { background-color: #b91c1c; }
-.speaker-btn.secondary { background-color: var(--orange); }
-.speaker-btn.secondary:hover { background-color: #ea580c; }
+.speaker-btn:hover { background: var(--primary-hover); }
+.speaker-btn.secondary { background: var(--surface); color: var(--primary); border-color: var(--border-strong); }
+.speaker-btn.secondary:hover { border-color: var(--primary); background: var(--surface); }
+.speaker-btn.danger { background: var(--surface); color: var(--danger); border-color: var(--border-strong); }
+.speaker-btn.danger:hover { border-color: var(--danger); background: var(--surface); }
 
-.empty-state, .loading-state {
-text-align: center;
-padding: 4rem 2rem;
-color: var(--text-secondary);
+/* Toasts */
+.toast-container {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(480px, calc(100% - 32px));
+    pointer-events: none;
 }
+.toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 4px 6px 16px;
+    border-radius: 8px;
+    background: #1f2933;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show { opacity: 1; transform: none; }
+.toast-error { background: var(--danger); }
+.toast-success { background: var(--success); }
+.toast-close { min-width: 44px; min-height: 44px; border: 0; background: none; color: inherit; font-size: 1.375rem; line-height: 1; cursor: pointer; }
 
-/* QR Code Modal */
+/* Dialog */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 31, 63, 0.45);
+}
+.modal-dialog { width: 100%; max-width: 440px; padding: 20px; border-radius: 12px; background: var(--surface); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2); }
+.modal-dialog p { margin: 0 0 12px; }
+.modal-copy-field { display: flex; gap: 8px; margin-bottom: 16px; }
+.modal-copy-field input { flex: 1; min-width: 0; }
+.modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.modal-warning .modal-confirm { background: var(--danger); border-color: var(--danger); }
+
+/* QR modal */
 .qr-modal {
-display: none;
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0, 0, 0, 0.9);
-z-index: 1000;
-justify-content: center;
-align-items: center;
-cursor: pointer;
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 31, 63, 0.55);
 }
-.qr-modal.show {
-display: flex;
-}
+.qr-modal.show { display: flex; }
 .qr-modal-content {
-background: white;
-padding: 2rem;
-border-radius: 16px;
-text-align: center;
-cursor: default;
-max-width: 90%;
-max-height: 90vh;
-overflow: auto;
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 24px;
+    border-radius: 12px;
+    background: var(--surface);
+    text-align: center;
 }
-.qr-modal-content h2 {
-color: var(--bg-color);
-margin-bottom: 1rem;
-font-size: 1.5rem;
-}
-.qr-modal-content p {
-color: var(--border-color);
-margin-bottom: 1.5rem;
-font-size: 0.9rem;
-}
-#qrcode {
-display: inline-block;
-padding: 1rem;
-background: white;
-border-radius: 8px;
-margin-bottom: 1rem;
-}
-.qr-url {
-background: #f5f5f5;
-padding: 0.75rem;
-border-radius: 8px;
-font-family: monospace;
-font-size: 0.85rem;
-color: var(--bg-color);
-word-break: break-all;
-margin-bottom: 1rem;
-}
-.close-qr {
-background: var(--accent-gradient);
-color: white;
-border: none;
-padding: 0.75rem 2rem;
-border-radius: 8px;
-font-size: 1rem;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.2s;
-}
-.close-qr:hover {
-transform: translateY(-2px);
-box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
-}
-.qr-button {
-background: rgba(255, 255, 255, 0.1);
-border: 1px solid rgba(255, 255, 255, 0.2);
-color: var(--text-primary);
-padding: 0.4rem 0.8rem;
-border-radius: 99px;
-font-size: 0.85rem;
-font-weight: 500;
-cursor: pointer;
-transition: all 0.2s;
-display: inline-flex;
-align-items: center;
-gap: 0.4rem;
-margin: -0.2rem 0 -0.2rem 0.5rem;
-}
-.qr-button:hover {
-background: rgba(255, 255, 255, 0.15);
-border-color: rgba(255, 255, 255, 0.3);
-transform: translateY(-1px);
-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-@media (max-width: 768px) {
-.qr-modal-content {
-    padding: 1.5rem;
-}
-.qr-modal-content h2 {
-    font-size: 1.25rem;
-}
-#qrcode {
-    transform: scale(0.8);
-    margin: -1rem 0;
-}
-}
+.qr-modal-content h2 { margin: 0 0 4px; font-size: 1.25rem; color: var(--navy); }
+.qr-modal-content p { margin: 0; color: var(--muted); }
+#qrcode { display: flex; justify-content: center; margin: 16px 0; }
+#qrcode img, #qrcode canvas { max-width: 100%; height: auto; }
+.qr-url { padding: 8px 10px; border-radius: 6px; background: var(--bg); font-size: 0.9375rem; word-break: break-all; }
+.close-qr { margin-top: 16px; min-width: 120px; }
 </style>
 </head>
 <body class="session-unavailable">
 
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-<div class="app-container" id="app">
+<nav class="site-bar" aria-label="AIGSI">
+<div class="site-bar-inner">
+    <a class="brand" href="https://aigsi.org" aria-label="AIGSI home">
+        <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="41" fill="none" stroke="#0066cc" stroke-width="5"/><circle cx="50" cy="50" r="30" fill="#0066cc"/><rect x="40" y="40" width="20" height="20" fill="#fff"/></svg>
+        <span>AIGSI</span>
+    </a>
+    <span class="brand-divider" aria-hidden="true"></span>
+    <span class="brand-product">Live Q&amp;A</span>
+</div>
+</nav>
+
+<main class="app-container" id="app">
 <header class="app-header">
-<h1>Live Q&A</h1>
-<p>Ask your questions to the speaker. The most upvoted questions rise to the top. An AI assistant will provide initial answers.</p>
+<h1>Live Q&amp;A</h1>
+<p class="intro intro-landing">AIGSI's live Q&amp;A for talks. Ask the speaker a question and upvote the ones you want answered; an AI posts a first answer to each question while you wait.</p>
+<p class="intro intro-session">Ask the speaker a question or upvote others. The most upvoted rise to the top, and an AI posts a first answer to each.</p>
 <div class="session-info" id="session-info">
-    <span>Session ID: <span id="session-id-display"></span></span>
-    <span class="session-info-divider">|</span>
-    <button class="qr-button" onclick="showQRCode()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <span class="session-id-text">Session <strong id="session-id-display"></strong></span>
+    <button class="qr-button" type="button" onclick="showQRCode()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
             <path d="M0 0h6v6H0V0zm2 2v2h2V2H2zm8-2h6v6h-6V0zm2 2v2h2V2h-2zM0 10h6v6H0v-6zm2 2v2h2v-2H2zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2z"/>
         </svg>
-        QR Code
+        Show QR code
     </button>
 </div>
 <div class="speaker-indicator" id="speaker-indicator">
-    🎤 Speaker Mode Active
-    <button onclick="copySpeakerLink()" title="Copy speaker link to share">Copy Link</button>
-    <button onclick="exitSpeakerMode()" title="Exit speaker mode">Exit</button>
+    <p class="speaker-indicator-text"><strong>Speaker mode.</strong> You can mark questions answered, hide them, and moderate AI answers.</p>
+    <button type="button" onclick="copySpeakerLink()" title="Copy the private speaker link">Copy speaker link</button>
+    <button type="button" onclick="exitSpeakerMode()" title="Exit speaker mode">Exit speaker mode</button>
 </div>
-<div class="session-warning" id="session-warning"></div>
-<div class="session-controls" id="session-controls">
-    <h2 class="session-controls-title">Session Setup</h2>
-    <p class="session-controls-description">Create a fresh session or join an existing one.</p>
-    <button id="create-session-btn" type="button">Create New Session</button>
-    <div class="session-links" id="session-links">
-        <div class="session-link-row">
-            <label for="audience-link">Audience</label>
+<div class="session-warning" id="session-warning" role="alert"></div>
+<section class="session-created" id="session-links" aria-labelledby="session-created-title">
+    <h2 id="session-created-title">Your session is ready</h2>
+    <p>Show the QR code or share the audience link with your audience.</p>
+    <div class="session-link-row">
+        <label for="audience-link">Audience link</label>
+        <div class="link-field">
             <input id="audience-link" type="text" readonly>
-            <button id="copy-audience-link" type="button">Copy</button>
+            <button id="copy-audience-link" type="button" aria-label="Copy audience link">Copy</button>
         </div>
-        <div class="session-link-row">
-            <label for="speaker-link">Speaker</label>
-            <input id="speaker-link" type="text" readonly>
-            <button id="copy-speaker-link" type="button">Copy</button>
-        </div>
-        <p style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">Share the speaker link privately—anyone with it can manage questions.</p>
     </div>
-    <div class="manual-session">
-        <label for="manual-session-input">Have a session ID?</label>
+    <div class="session-link-row">
+        <label for="speaker-link">Speaker link (keep it private)</label>
+        <div class="link-field">
+            <input id="speaker-link" type="text" readonly>
+            <button id="copy-speaker-link" type="button" aria-label="Copy speaker link">Copy</button>
+        </div>
+    </div>
+    <p class="session-created-note"><strong>The speaker link is the only way back to speaker mode, so save it now.</strong> Anyone who has it can moderate questions.</p>
+    <button type="button" class="btn-secondary" id="session-created-done">I've saved it</button>
+</section>
+<div class="session-controls" id="session-controls">
+    <div class="session-block manual-session">
+        <h2>Join a talk</h2>
+        <p>Enter the session ID the speaker shows, or scan their QR code.</p>
+        <label for="manual-session-input">Session ID</label>
         <div class="manual-session-row">
-            <input id="manual-session-input" type="text" placeholder="Enter session ID">
+            <input id="manual-session-input" type="text" placeholder="e.g. a1b2c3d4" autocapitalize="off" autocomplete="off" spellcheck="false">
             <button id="manual-session-join-btn" type="button">Join</button>
         </div>
     </div>
+    <div class="session-block">
+        <h2>Giving a talk?</h2>
+        <p>Create a session, then show its QR code so the audience can join.</p>
+        <button id="create-session-btn" type="button">Create new session</button>
+    </div>
 </div>
-<a href="#qa-form" class="mobile-ask-btn">✨ Ask a Question</a>
 </header>
-
-<main class="qa-list-container">
-<div class="qa-list" id="qa-list">
-    <div class="loading-state" id="loading-state">Loading questions...</div>
-</div>
-</main>
 
 <aside class="side-panel">
 <div class="form-container">
-    <h2 id="form-title">Ask a Question</h2>
+    <h2 id="form-title">Ask a question</h2>
     <form id="qa-form">
         <div class="form-group">
-            <label for="question-input">Your Question</label>
-            <textarea id="question-input" rows="4" required></textarea>
+            <label for="question-input">Your question</label>
+            <textarea id="question-input" rows="3" required></textarea>
         </div>
         <div class="form-group">
-            <label for="author-input">Your Name (Optional)</label>
-            <input type="text" id="author-input">
+            <label for="author-input">Your name <span class="optional">(optional)</span></label>
+            <input type="text" id="author-input" autocomplete="name">
         </div>
-        <button type="submit" class="submit-btn" id="submit-btn">Submit</button>
+        <button type="submit" class="submit-btn" id="submit-btn">Post question</button>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <p class="form-status" id="form-status" role="status" hidden></p>
     </form>
 </div>
 </aside>
-</div>
 
-<!-- Template for Q&A card -->
+<section class="qa-list-container" aria-label="Questions">
+<div class="qa-list" id="qa-list">
+    <div class="loading-state" id="loading-state">Loading questions…</div>
+</div>
+</section>
+</main>
+
 <template id="qa-card-template">
-<section class="qa-card" data-question-id="">
+<article class="qa-card" data-question-id="">
 <div class="vote-section">
-    <button class="vote-btn question-upvote-btn" title="Upvote Question">▲</button>
+    <button type="button" class="vote-btn question-upvote-btn" aria-label="Upvote this question" aria-pressed="false">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 15l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
     <span class="vote-count question-vote-count">0</span>
 </div>
 <div class="content-section">
+    <p class="question-text"></p>
     <div class="question-header">
         <span class="author-name"></span>
         <span class="timestamp"></span>
         <span class="status-badge"></span>
     </div>
-    <p class="question-text"></p>
     <div class="ai-answer-container" style="display: none;">
         <div class="ai-answer-header">
-            <span class="ai-title">AI Assistant</span>
-            <div class="ai-vote-controls">
-                <button class="ai-vote-btn up-vote" title="Good Answer">👍</button>
-                <span class="ai-vote-count up-vote-count">0</span>
-                <button class="ai-vote-btn down-vote" title="Bad Answer">👎</button>
-                <span class="ai-vote-count down-vote-count">0</span>
-            </div>
+            <span class="ai-title">AI answer</span>
         </div>
         <div class="ai-answer-text"></div>
+        <div class="ai-vote-controls">
+            <span class="ai-vote-label">Was this helpful?</span>
+            <button type="button" class="ai-vote-btn up-vote" aria-label="Yes, this AI answer was helpful" aria-pressed="false">Yes</button>
+            <span class="ai-vote-count up-vote-count">0</span>
+            <button type="button" class="ai-vote-btn down-vote" aria-label="No, this AI answer was not helpful" aria-pressed="false">No</button>
+            <span class="ai-vote-count down-vote-count">0</span>
+        </div>
     </div>
     <div class="speaker-actions" style="display: none;">
-        <button class="speaker-btn mark-answered-btn">Mark as Answered Live</button>
-        <button class="speaker-btn secondary mark-ai-correct-btn">Mark AI as Correct</button>
-        <button class="speaker-btn secondary hide-ai-btn">Hide AI Answer</button>
-        <button class="speaker-btn danger hide-question-btn">Hide Question</button>
+        <button type="button" class="speaker-btn mark-answered-btn">Mark as answered live</button>
+        <button type="button" class="speaker-btn secondary mark-ai-correct-btn">Mark AI as correct</button>
+        <button type="button" class="speaker-btn secondary hide-ai-btn">Hide AI answer</button>
+        <button type="button" class="speaker-btn danger hide-question-btn">Hide question</button>
     </div>
 </div>
-</section>
+</article>
 </template>
 
-<!-- QR Code Modal -->
 <div class="qr-modal" id="qrModal" onclick="closeQRModal(event)">
-<div class="qr-modal-content" onclick="event.stopPropagation()">
-<h2>Scan to Join Q&A Session</h2>
-<p>Share this QR code with your audience</p>
+<div class="qr-modal-content" role="dialog" aria-modal="true" aria-labelledby="qr-title" onclick="event.stopPropagation()">
+<h2 id="qr-title">Scan to join the Q&amp;A</h2>
+<p>Point your phone camera at the code.</p>
 <div id="qrcode"></div>
 <div class="qr-url" id="qrUrl"></div>
-<button class="close-qr" onclick="closeQRModal()">Close</button>
+<button class="close-qr" type="button" onclick="closeQRModal()">Close</button>
 </div>
 </div>
 
 <script>
 // --- CONFIGURATION ---
 const WORKER_URL = 'https://q-and-a-app.audd.workers.dev';
-const POLLING_INTERVAL_MS = 3000; // 3 seconds
+const POLLING_INTERVAL_MS = 4000; // 4 seconds; paused while the tab is hidden
 // ---------------------
 
 let toastContainer = null;
@@ -896,6 +612,17 @@ function getToastContainer() {
         toastContainer = document.getElementById('toast-container');
     }
     return toastContainer;
+}
+
+// The API sends created_at in UTC, either as "YYYY-MM-DD HH:MM:SS" (no zone) or as ISO 8601.
+function parseApiDate(value) {
+    if (value === null || value === undefined || value === '') return NaN;
+    if (typeof value === 'number') return value;
+    let text = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(text)) {
+        text = text.replace(' ', 'T') + 'Z';
+    }
+    return Date.parse(text);
 }
 
 function escapeHtml(value = '') {
@@ -1278,6 +1005,10 @@ const copyAudienceButton = document.getElementById('copy-audience-link');
 const copySpeakerButton = document.getElementById('copy-speaker-link');
 const manualSessionInput = document.getElementById('manual-session-input');
 const manualSessionJoinButton = document.getElementById('manual-session-join-btn');
+const sessionCreatedDoneButton = document.getElementById('session-created-done');
+const formError = document.getElementById('form-error');
+const formStatus = document.getElementById('form-status');
+let formStatusTimerId = null;
 
 const sessionToolsButton = Array.from(document.querySelectorAll('button')).find(
     (button) => button.textContent && button.textContent.trim().toLowerCase() === 'session tools'
@@ -1310,6 +1041,14 @@ const hasVoted = (type, id) => {
     const storageType = type === 'question' ? 'questions' : 'answers';
     return votedItems[storageType].includes(id);
 };
+const removeVote = (type, id) => {
+    const storageType = type === 'question' ? 'questions' : 'answers';
+    const index = votedItems[storageType].indexOf(id);
+    if (index !== -1) {
+        votedItems[storageType].splice(index, 1);
+        saveVotedItems();
+    }
+};
 const addVote = (type, id) => {
     const storageType = type === 'question' ? 'questions' : 'answers';
     if (!votedItems[storageType].includes(id)) {
@@ -1327,11 +1066,11 @@ const setFormEnabled = (enabled, options = {}) => {
     });
 
     if (formTitle) {
-        formTitle.textContent = enabled ? 'Ask a Question' : disableOverlay ? 'Ask a Question' : 'Session unavailable';
+        formTitle.textContent = enabled ? 'Ask a question' : disableOverlay ? 'Ask a question' : 'Session unavailable';
     }
 
     if (submitButton) {
-        submitButton.textContent = enabled ? 'Submit' : disableOverlay ? 'Submit' : 'Session Required';
+        submitButton.textContent = enabled ? 'Post question' : disableOverlay ? 'Post question' : 'Session required';
     }
 
     if (questionInputField) {
@@ -1366,7 +1105,38 @@ const stopPolling = () => {
 
 const startPolling = () => {
     stopPolling();
+    if (document.hidden) return;
     pollingTimerId = setInterval(fetchAndRefresh, POLLING_INTERVAL_MS);
+};
+
+document.addEventListener('visibilitychange', () => {
+    if (!sessionId || sessionUnavailable) return;
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        fetchAndRefresh();
+        startPolling();
+    }
+});
+
+const showFormError = (message) => {
+    if (!formError) return;
+    formError.textContent = message;
+    formError.hidden = false;
+};
+
+const clearFormMessages = () => {
+    if (formError) { formError.hidden = true; formError.textContent = ''; }
+    if (formStatus) { formStatus.hidden = true; formStatus.textContent = ''; }
+    if (formStatusTimerId) { clearTimeout(formStatusTimerId); formStatusTimerId = null; }
+};
+
+const showFormStatus = (message) => {
+    if (!formStatus) return;
+    formStatus.textContent = message;
+    formStatus.hidden = false;
+    if (formStatusTimerId) clearTimeout(formStatusTimerId);
+    formStatusTimerId = setTimeout(() => { formStatus.hidden = true; }, 8000);
 };
 
 const copyToClipboard = async (value, description) => {
@@ -1392,7 +1162,7 @@ const updateSessionLinks = (audienceUrl, speakerUrl) => {
     if (!sessionLinksContainer) return;
     if (audienceLinkInput) audienceLinkInput.value = audienceUrl;
     if (speakerLinkInput) speakerLinkInput.value = speakerUrl;
-    sessionLinksContainer.style.display = 'flex';
+    sessionLinksContainer.style.display = 'block';
 };
 
 const clearSessionLinks = () => {
@@ -1407,7 +1177,7 @@ const handleSessionMissing = (reason) => {
     if (isInitial) {
         clearSessionWarning();
     } else {
-        displaySessionWarning(`We couldn't find this session. It might have expired or was never created. Try entering a different session ID or create a new session above.`);
+        displaySessionWarning(`We couldn't find this session. It might have expired or was never created. Check the session ID, or create a new session below.`);
     }
 
     qaList.innerHTML = isInitial
@@ -1536,14 +1306,19 @@ const joinSessionFromInput = () => {
 };
 
 function formatTimeAgo(dateString) {
-    const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
-    if (seconds < 60) return "Just now";
-    const intervals = { y: 31536000, mo: 2592000, d: 86400, h: 3600, m: 60 };
-    for (const [unit, value] of Object.entries(intervals)) {
-        const interval = seconds / value;
-        if (interval >= 1) return `${Math.floor(interval)}${unit} ago`;
-    }
+    const createdMs = parseApiDate(dateString);
+    if (Number.isNaN(createdMs)) return '';
+    const seconds = Math.floor((Date.now() - createdMs) / 1000);
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`;
+    if (seconds < 2592000) return `${Math.floor(seconds / 86400)} d ago`;
+    if (seconds < 31536000) return `${Math.floor(seconds / 2592000)} mo ago`;
+    return `${Math.floor(seconds / 31536000)} y ago`;
 }
+
+const WRITING_HTML = '<p class="ai-status">AI is writing an answer<span class="writing-dots" aria-hidden="true"><span></span><span></span><span></span></span></p>';
+const FAILED_HTML = '<p class="ai-status">The AI couldn\'t answer this one.</p>';
 
 function updateCard(card, question) {
     // Update basic info
@@ -1557,17 +1332,22 @@ function updateCard(card, question) {
     statusBadge.className = 'status-badge';
     statusBadge.classList.add(question.status);
     if (question.hidden) statusBadge.classList.add('hidden');
-    statusBadge.textContent = question.hidden ? 'hidden' : question.status.replace(/_/g, ' ');
+    statusBadge.textContent = question.hidden ? 'Hidden from audience' : question.status === 'speaker_answered' ? 'Answered live' : '';
 
     // Handle AI answer visibility
     const aiContainer = card.querySelector('.ai-answer-container');
     const aiTextElement = card.querySelector('.ai-answer-text');
     const shouldShowAi = question.ai_answer && !question.ai_answer_hidden;
     
-    if (shouldShowAi || question.status === 'ai_answering') {
+    const isWriting = !question.ai_answer && (question.status === 'ai_answering' || question.status === 'pending');
+    const isFailed = !question.ai_answer && question.status === 'failed';
+    aiContainer.classList.toggle('is-writing', isWriting);
+    aiContainer.classList.toggle('is-failed', isFailed);
+
+    if (shouldShowAi || isWriting || isFailed) {
         aiContainer.style.display = 'block';
         
-        if (question.ai_answer) {
+        if (shouldShowAi) {
             aiTextElement.innerHTML = renderSafeAiAnswer(question.ai_answer);
             card.querySelector('.up-vote-count').textContent = question.ai_answer_upvotes;
             card.querySelector('.down-vote-count').textContent = question.ai_answer_downvotes;
@@ -1575,9 +1355,13 @@ function updateCard(card, question) {
             // Update AI title for marked correct
             const aiTitle = card.querySelector('.ai-title');
             aiTitle.classList.toggle('marked-correct', question.ai_answer_marked_correct);
-            aiTitle.textContent = question.ai_answer_marked_correct ? 'AI Assistant (Correct)' : 'AI Assistant';
-        } else if (question.status === 'ai_answering') {
-            aiTextElement.innerHTML = '<em>Thinking...</em>';
+            aiTitle.textContent = question.ai_answer_marked_correct ? 'AI answer · Marked correct by the speaker' : 'AI answer';
+        } else {
+            const aiTitle = card.querySelector('.ai-title');
+            aiTitle.classList.remove('marked-correct');
+            aiTitle.textContent = 'AI answer';
+            if (isWriting && !aiTextElement.querySelector('.writing-dots')) aiTextElement.innerHTML = WRITING_HTML;
+            if (isFailed) aiTextElement.innerHTML = FAILED_HTML;
         }
     } else {
         aiContainer.style.display = 'none';
@@ -1590,15 +1374,15 @@ function updateCard(card, question) {
         
         // Update button texts based on states
         const hideQuestionBtn = card.querySelector('.hide-question-btn');
-        hideQuestionBtn.textContent = question.hidden ? 'Show Question' : 'Hide Question';
+        hideQuestionBtn.textContent = question.hidden ? 'Show question' : 'Hide question';
         
         const hideAiBtn = card.querySelector('.hide-ai-btn');
-        hideAiBtn.textContent = question.ai_answer_hidden ? 'Show AI Answer' : 'Hide AI Answer';
-        hideAiBtn.style.display = question.ai_answer ? 'block' : 'none';
+        hideAiBtn.textContent = question.ai_answer_hidden ? 'Show AI answer' : 'Hide AI answer';
+        hideAiBtn.style.display = question.ai_answer ? '' : 'none';
         
         const markAiBtn = card.querySelector('.mark-ai-correct-btn');
-        markAiBtn.textContent = question.ai_answer_marked_correct ? 'Unmark AI as Correct' : 'Mark AI as Correct';
-        markAiBtn.style.display = question.ai_answer ? 'block' : 'none';
+        markAiBtn.textContent = question.ai_answer_marked_correct ? 'Unmark AI as correct' : 'Mark AI as correct';
+        markAiBtn.style.display = question.ai_answer ? '' : 'none';
     } else {
         speakerActions.style.display = 'none';
     }
@@ -1607,9 +1391,15 @@ function updateCard(card, question) {
     card.classList.toggle('hidden', question.hidden);
     
     // Update voted states
-    card.querySelector('.question-upvote-btn').classList.toggle('voted', hasVoted('question', question.id));
-    card.querySelector('.ai-vote-btn.up-vote').classList.toggle('voted', hasVoted('answer', `${question.id}-up`));
-    card.querySelector('.ai-vote-btn.down-vote').classList.toggle('voted', hasVoted('answer', `${question.id}-down`));
+    [
+        ['.question-upvote-btn', hasVoted('question', question.id)],
+        ['.ai-vote-btn.up-vote', hasVoted('answer', `${question.id}-up`)],
+        ['.ai-vote-btn.down-vote', hasVoted('answer', `${question.id}-down`)]
+    ].forEach(([selector, voted]) => {
+        const button = card.querySelector(selector);
+        button.classList.toggle('voted', voted);
+        button.setAttribute('aria-pressed', voted ? 'true' : 'false');
+    });
 }
 
 function sortCards() {
@@ -1628,7 +1418,7 @@ function sortCards() {
         }
         
         // Finally by date (newer first)
-        return new Date(qB.created_at) - new Date(qA.created_at);
+        return (parseApiDate(qB.created_at) || 0) - (parseApiDate(qA.created_at) || 0);
     });
     cards.forEach(card => qaList.appendChild(card));
 }
@@ -1745,14 +1535,16 @@ formElement.addEventListener('submit', async (e) => {
         return;
     }
 
+    clearFormMessages();
     submitButton.disabled = true;
-    submitButton.textContent = 'Submitting...';
+    submitButton.textContent = 'Posting…';
+    const askedText = questionInputField.value;
     try {
         const response = await fetch(`${WORKER_URL}/api/${sessionId}/questions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                questionText: questionInputField.value,
+                questionText: askedText,
                 authorName: authorInputField.value,
             }),
         });
@@ -1761,15 +1553,51 @@ formElement.addEventListener('submit', async (e) => {
             handleSessionMissing('not-found');
             return;
         }
-        if (!response.ok) return;
+        if (!response.ok) {
+            let serverMessage = '';
+            try {
+                const data = await response.json();
+                if (data && typeof data.error === 'string') serverMessage = data.error;
+            } catch {}
+            if (response.status === 429) {
+                showFormError('Too many questions at once. Wait a moment, then try again.');
+            } else if (response.status >= 400 && response.status < 500 && serverMessage && serverMessage.length <= 160) {
+                showFormError(`Your question wasn't posted: ${serverMessage}`);
+            } else {
+                showFormError("Your question wasn't posted. Please try again.");
+            }
+            return;
+        }
 
-        questionInputField.value = '';
+        let created = null;
+        try { created = await response.json(); } catch {}
+        const createdId = created && (created.id ?? created.questionId ?? (created.question && created.question.id));
+
+        if (questionInputField.value === askedText) questionInputField.value = '';
         await fetchAndRefresh();
+        showFormStatus('Question posted. The AI is writing a first answer.');
+        showToast('Question posted. The AI is writing a first answer.', { type: 'success', duration: 4000 });
+
+        let newCard = createdId !== undefined && createdId !== null
+            ? qaList.querySelector(`.qa-card[data-question-id='${parseInt(createdId, 10)}']`)
+            : null;
+        if (!newCard) {
+            const trimmed = askedText.trim();
+            newCard = Array.from(qaList.querySelectorAll('.qa-card'))
+                .filter((card) => card.querySelector('.question-text').textContent.trim() === trimmed)
+                .pop() || null;
+        }
+        if (newCard) {
+            newCard.classList.add('just-asked');
+            newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => newCard.classList.remove('just-asked'), 4000);
+        }
     } catch (error) {
-        console.error('Submit failed:', error);
+        console.warn('Submit failed:', error);
+        showFormError("Your question wasn't posted. Check your connection and try again.");
     } finally {
         submitButton.disabled = false;
-        submitButton.textContent = 'Submit';
+        submitButton.textContent = 'Post question';
     }
 });
 
@@ -1777,21 +1605,35 @@ qaList.addEventListener('click', async (e) => {
     const card = e.target.closest('.qa-card');
     if (!card) return;
     const questionId = parseInt(card.dataset.questionId);
+    const clickedButton = e.target.closest('button');
+    if (!clickedButton) return;
     
     const voteRequest = async (type, direction, voteId) => {
         if (hasVoted(type, voteId)) return;
         
-        // Optimistic UI update
+        // Optimistic UI update, undone if the request fails
         addVote(type, voteId);
-        e.target.classList.add('voted');
-        const countEl = e.target.closest('.vote-section, .ai-vote-controls').querySelector(`.${direction}-vote-count, .question-vote-count`);
-        if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+        clickedButton.classList.add('voted');
+        clickedButton.setAttribute('aria-pressed', 'true');
+        const countEl = type === 'question'
+            ? card.querySelector('.question-vote-count')
+            : card.querySelector(`.${direction}-vote-count`);
+        if (countEl) countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
         
-        // Fire-and-forget request
-        fetch(`${WORKER_URL}/api/questions/${questionId}/vote`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, direction })
-        }).catch(err => console.error("Vote request failed:", err));
+        try {
+            const response = await fetch(`${WORKER_URL}/api/questions/${questionId}/vote`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, direction })
+            });
+            if (!response.ok) throw new Error(`Vote failed with status ${response.status}`);
+        } catch (err) {
+            console.warn('Vote request failed:', err);
+            removeVote(type, voteId);
+            clickedButton.classList.remove('voted');
+            clickedButton.setAttribute('aria-pressed', 'false');
+            if (countEl) countEl.textContent = Math.max(0, (parseInt(countEl.textContent, 10) || 0) - 1);
+            showToast("Your vote didn't go through. Please try again.", { type: 'error' });
+        }
     };
     
     const speakerRequest = async (endpoint) => {
@@ -1799,9 +1641,9 @@ qaList.addEventListener('click', async (e) => {
             showToast('Speaker key missing. Use a speaker link for this session.', { type: 'warning' });
             return;
         }
-        e.target.disabled = true;
-        const originalText = e.target.textContent;
-        e.target.textContent = 'Processing...';
+        clickedButton.disabled = true;
+        const originalText = clickedButton.textContent;
+        clickedButton.textContent = 'Working…';
         
         try {
             const response = await fetch(`${WORKER_URL}/api/questions/${questionId}/${endpoint}`, {
@@ -1815,7 +1657,7 @@ qaList.addEventListener('click', async (e) => {
                 speakerKey = '';
                 document.body.classList.remove('speaker-view');
                 qaList.querySelectorAll('.speaker-actions').forEach(section => { section.style.display = 'none'; });
-                e.target.textContent = originalText;
+                clickedButton.textContent = originalText;
                 return;
             }
 
@@ -1825,10 +1667,10 @@ qaList.addEventListener('click', async (e) => {
             await fetchAndRefresh(); // Immediate refresh after speaker action
         } catch (error) {
             console.error(`Speaker action ${endpoint} failed:`, error);
-            showToast('Something went wrong while processing that speaker action.', { type: 'error' });
-            e.target.textContent = originalText;
+            showToast("That didn't work. Please try again.", { type: 'error' });
+            clickedButton.textContent = originalText;
         } finally {
-            e.target.disabled = false;
+            clickedButton.disabled = false;
         }
     };
     
@@ -1857,19 +1699,11 @@ function initializeApp() {
     switchSession(initialSession, urlSpeakerKey);
 }
 
-// Handle mobile ask button click
-document.querySelector('.mobile-ask-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (submitButton.disabled) {
-        showToast('The session is not ready for questions yet. Create a session first.', { type: 'warning' });
-        return;
-    }
-    const form = document.getElementById('qa-form');
-    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => {
-        document.getElementById('question-input').focus();
-    }, 500);
-});
+if (sessionCreatedDoneButton) {
+    sessionCreatedDoneButton.addEventListener('click', () => {
+        if (sessionLinksContainer) sessionLinksContainer.style.display = 'none';
+    });
+}
 
 // Handle Escape key to close QR modal
 document.addEventListener('keydown', (e) => {
