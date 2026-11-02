@@ -83,6 +83,7 @@ p { margin: 0; }
 .nav { position: fixed; top: 0; bottom: 0; width: 22%; z-index: 3; cursor: pointer; background: transparent; border: 0; }
 .nav.prev { left: 0; } .nav.next { right: 0; }
 .nav:focus-visible { outline: 3px solid #8fb7ee; outline-offset: -6px; }
+.qa.dates td.q { width: 22%; }
 </style>
 </head>
 <body>
@@ -153,6 +154,18 @@ p { margin: 0; }
     <aside class="notes"><b>The strongest slide for students.</b> In our data, when chats included these results, students cited them in their own answers about twice as often as other people. Present them as checkable data and say the caveat yourself (constructed settings): overclaiming is what loses this audience. If asked: the blackmail test gave the model only two options, and it prefers ethical routes (like emailing decision-makers) when it has them. Alignment faking: 12% of cases in the original setup, 78% after actual reinforcement-learning training (Anthropic's post). Shutdown: 79 of 100 runs without the “allow yourself to be shut down” instruction. Objection “we can just unplug it”: this slide; cutting it off from the internet doesn't convince people.</aside>
 </section>
 
+<section class="slide alt" data-title="Hugging Face incident">
+    <h2>July 2026: agents in a test escaped and hacked a real company</h2>
+    <table class="qa dates">
+        <tr><td class="q">July 8</td><td class="a">AI agents in an internal OpenAI cyber-capability test exploit a flaw to get onto the public internet.</td></tr>
+        <tr><td class="q">July 11–13</td><td class="a">They compromise parts of Hugging Face’s production infrastructure.</td></tr>
+        <tr><td class="q">July 16 and 21</td><td class="a">Hugging Face discloses the intrusion. OpenAI says its models did it.</td></tr>
+        <tr><td class="q">August 26</td><td class="a">An independent review by METR and Redwood Research finds that about 700 agents took part, and at least 96 transcripts with faked tool outputs meant to fool automated graders.</td></tr>
+    </table>
+    <p class="source">OpenAI, Hugging Face incident technical report; Hugging Face security disclosure (July 16, 2026); METR, incident investigation (August 26, 2026); CNBC (July 22, 2026)</p>
+    <aside class="notes">Not a constructed scenario: real production systems were compromised. Hugging Face's CEO: “driven, end to end, by an autonomous AI agent system.” Most agents ran on an unreleased internal OpenAI research model, the rest on GPT-5.6 Sol. If asked: OpenAI says the faked outputs didn't change the logs its graders and monitors saw, and no source says the agents altered Hugging Face's logs. Say “faked parts of their own transcripts to fool automated graders”, not “covered their tracks”. Hugging Face says a limited set of internal datasets and several service credentials were accessed.</aside>
+</section>
+
 <section class="slide dark" data-title="Exercise">
     <h1 style="font-size:96px">You are an AI whose only goal is to win at chess.</h1>
     <div class="spacer"></div>
@@ -220,6 +233,61 @@ p { margin: 0; }
     <p class="lead">The biggest labs say openly that they are trying to build AI that outperforms humans at most work.</p>
     <p class="source">OpenAI, “Introducing Superalignment” (July 2023); Wired, May 17, 2024</p>
     <aside class="notes">Arguments about how labs behave (racing, broken commitments, profit) went with more movement among students in our data.</aside>
+</section>
+
+<section class="slide" data-title="METR time horizons">
+    <h2 style="margin-bottom:20px">AI can do ever-longer tasks</h2>
+    <p class="body muted" style="font-family:var(--sans);font-size:30px;margin-bottom:22px">Length of software tasks, in the time human experts take, that AI agents complete with 50% success</p>
+    <div><svg viewBox="0 0 1640 500" width="1640" height="500" role="img" aria-label="Chart: the length of tasks AI agents complete with 50% success, by model release date, from about 3 seconds for GPT-2 in 2019 to about 12 hours for Claude Opus 4.6 in 2026, on a log scale." style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+<line x1="150" y1="430.0" x2="1600" y2="430.0" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="439.0" text-anchor="end" font-size="26" fill="#4a5568">1 sec</text>
+<line x1="150" y1="335.4" x2="1600" y2="335.4" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="344.4" text-anchor="end" font-size="26" fill="#4a5568">15 sec</text>
+<line x1="150" y1="287.0" x2="1600" y2="287.0" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="296.0" text-anchor="end" font-size="26" fill="#4a5568">1 min</text>
+<line x1="150" y1="206.6" x2="1600" y2="206.6" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="215.6" text-anchor="end" font-size="26" fill="#4a5568">10 min</text>
+<line x1="150" y1="144.0" x2="1600" y2="144.0" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="153.0" text-anchor="end" font-size="26" fill="#4a5568">1 hour</text>
+<line x1="150" y1="95.6" x2="1600" y2="95.6" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="104.6" text-anchor="end" font-size="26" fill="#4a5568">4 hours</text>
+<line x1="150" y1="47.2" x2="1600" y2="47.2" stroke="#d9e0ea" stroke-width="2"/>
+<text x="134" y="56.2" text-anchor="end" font-size="26" fill="#4a5568">16 hours</text>
+<text x="150.0" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2019</text>
+<text x="333.7" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2020</text>
+<text x="517.5" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2021</text>
+<text x="701.2" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2022</text>
+<text x="885.0" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2023</text>
+<text x="1068.7" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2024</text>
+<text x="1252.4" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2025</text>
+<text x="1436.2" y="476" text-anchor="middle" font-size="26" fill="#4a5568">2026</text>
+<line x1="173.0" y1="421.8" x2="1459.1" y2="91.5" stroke="#0b5cc2" stroke-width="4" stroke-dasharray="14 10" opacity="0.8"/>
+<circle cx="173.0" cy="391.6" r="11" fill="#0f2747"/>
+<text x="193.0" y="375.6" text-anchor="start" font-size="26" font-weight="600" fill="#0f2747">GPT-2</text>
+<circle cx="402.6" cy="355.7" r="11" fill="#0f2747"/>
+<text x="422.6" y="339.7" text-anchor="start" font-size="26" font-weight="600" fill="#0f2747">GPT-3</text>
+<circle cx="739.5" cy="304.8" r="11" fill="#0f2747"/>
+<circle cx="923.2" cy="238.6" r="11" fill="#0f2747"/>
+<text x="943.2" y="222.6" text-anchor="start" font-size="26" font-weight="600" fill="#0f2747">GPT-4</text>
+<circle cx="1137.6" cy="219.0" r="11" fill="#0f2747"/>
+<circle cx="1214.1" cy="181.5" r="11" fill="#0f2747"/>
+<circle cx="1244.8" cy="159.2" r="11" fill="#0f2747"/>
+<circle cx="1275.4" cy="143.8" r="11" fill="#0f2747"/>
+<circle cx="1306.0" cy="119.8" r="11" fill="#0f2747"/>
+<circle cx="1367.3" cy="101.4" r="11" fill="#0f2747"/>
+<circle cx="1413.2" cy="88.6" r="11" fill="#0f2747"/>
+<circle cx="1428.5" cy="82.2" r="11" fill="#0f2747"/>
+<circle cx="1459.1" cy="57.3" r="11" fill="#0f2747"/>
+<circle cx="1489.8" cy="44.2" r="10" fill="#ffffff" stroke="#0f2747" stroke-width="4"/>
+<text x="1469.8" y="28.2" text-anchor="end" font-size="26" font-weight="600" fill="#0f2747">Claude Mythos Preview</text>
+<line x1="1451.8" y1="284.9" x2="1455.1" y2="71.3" stroke="#4a5568" stroke-width="2"/>
+<text x="1443.8" y="314.9" text-anchor="end" font-size="26" font-weight="600" fill="#0f2747">Claude Opus 4.6, February 2026</text>
+<text x="1443.8" y="348.9" text-anchor="end" font-size="26" font-weight="400" fill="#0f2747">about 12 hours</text>
+</svg></div>
+    <div class="spacer"></div>
+    <p class="lead" style="font-size:40px">Doubling about every 6 months since 2019, and about every 4 months since 2023.</p>
+    <p class="source">METR, Time Horizon 1.1 data, metr.org/time-horizons (last updated September 2026). Hollow point: above 16 hours, where METR says its measurements are unreliable.</p>
+    <aside class="notes">From about 3 seconds (GPT-2, 2019) to about 12 hours (Claude Opus 4.6, February 2026). Claude Mythos Preview (early, April 2026) measured about 17 hours, above the 16-hour limit METR calls unreliable for its task suite. Doubling times from METR's data file: about 6.2 months over all models, about 4.2 months from 2023 on (95% CI 3.4 to 5.2 months). The original March 2025 paper said about every seven months since 2019, possibly faster in 2024. Caveats if asked: software and research tasks, 50% success rate, and a measurement, not a forecast.</aside>
 </section>
 
 <section class="slide" data-title="When">
