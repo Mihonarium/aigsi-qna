@@ -308,9 +308,11 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
     border-radius: 0 8px 8px 0;
     background: var(--ai-bg);
 }
-.ai-answer-header { margin-bottom: 6px; }
-.ai-title { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary); }
-.ai-title.marked-correct { color: var(--success); }
+.ai-answer-header { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; margin-bottom: 6px; }
+.ai-title { font-size: 0.875rem; font-weight: 600; color: var(--primary); }
+.ai-correct { display: inline-flex; align-items: center; gap: 5px; font-size: 0.875rem; font-weight: 600; color: var(--success); }
+.ai-correct[hidden] { display: none; }
+.ai-correct svg { width: 16px; height: 16px; flex: none; }
 .ai-answer-text { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.6; overflow-wrap: anywhere; }
 .ai-answer-text > :first-child { margin-top: 0; }
 .ai-answer-text > :last-child { margin-bottom: 0; }
@@ -348,7 +350,10 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
 }
 .ai-vote-btn:hover { border-color: var(--primary); }
 .ai-vote-btn.voted { border-color: var(--primary); background: var(--primary); color: #fff; cursor: default; }
-.ai-vote-count { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 1.5ch; margin-right: 6px; }
+.ai-vote-count { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 1.5ch; }
+/* Each button stays on the same line as its count, and the two pairs stay together */
+.ai-vote-pairs { display: inline-flex; align-items: center; gap: 16px; white-space: nowrap; }
+.ai-vote-pair { display: inline-flex; align-items: center; gap: 6px; }
 .ai-answer-container.is-writing .ai-vote-controls,
 .ai-answer-container.is-failed .ai-vote-controls { display: none; }
 .ai-answer-container.is-failed { border-left-color: var(--border-strong); background: #f6f7f8; }
@@ -569,14 +574,15 @@ body.session-unavailable .qa-list-container, body.session-unavailable .side-pane
     <div class="ai-answer-container" style="display: none;">
         <div class="ai-answer-header">
             <span class="ai-title">AI answer</span>
+            <span class="ai-correct" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Marked correct by the speaker</span>
         </div>
         <div class="ai-answer-text"></div>
         <div class="ai-vote-controls">
             <span class="ai-vote-label">Was this helpful?</span>
-            <button type="button" class="ai-vote-btn up-vote" aria-label="Yes, this AI answer was helpful" aria-pressed="false">Yes</button>
-            <span class="ai-vote-count up-vote-count">0</span>
-            <button type="button" class="ai-vote-btn down-vote" aria-label="No, this AI answer was not helpful" aria-pressed="false">No</button>
-            <span class="ai-vote-count down-vote-count">0</span>
+            <span class="ai-vote-pairs">
+                <span class="ai-vote-pair"><button type="button" class="ai-vote-btn up-vote" aria-label="Yes, this AI answer was helpful" aria-pressed="false">Yes</button><span class="ai-vote-count up-vote-count">0</span></span>
+                <span class="ai-vote-pair"><button type="button" class="ai-vote-btn down-vote" aria-label="No, this AI answer was not helpful" aria-pressed="false">No</button><span class="ai-vote-count down-vote-count">0</span></span>
+            </span>
         </div>
     </div>
     <div class="speaker-actions" style="display: none;">
@@ -1352,14 +1358,10 @@ function updateCard(card, question) {
             card.querySelector('.up-vote-count').textContent = question.ai_answer_upvotes;
             card.querySelector('.down-vote-count').textContent = question.ai_answer_downvotes;
             
-            // Update AI title for marked correct
-            const aiTitle = card.querySelector('.ai-title');
-            aiTitle.classList.toggle('marked-correct', question.ai_answer_marked_correct);
-            aiTitle.textContent = question.ai_answer_marked_correct ? 'AI answer · Marked correct by the speaker' : 'AI answer';
+            // Show the speaker's "marked correct" note next to the AI answer label
+            card.querySelector('.ai-correct').hidden = !question.ai_answer_marked_correct;
         } else {
-            const aiTitle = card.querySelector('.ai-title');
-            aiTitle.classList.remove('marked-correct');
-            aiTitle.textContent = 'AI answer';
+            card.querySelector('.ai-correct').hidden = true;
             if (isWriting && !aiTextElement.querySelector('.writing-dots')) aiTextElement.innerHTML = WRITING_HTML;
             if (isFailed) aiTextElement.innerHTML = FAILED_HTML;
         }
